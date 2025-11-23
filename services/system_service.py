@@ -2,7 +2,7 @@
 
 from core import os_utils
 
-UPDATE_SCRIPT_PATH = "usr/local/bin/home-automation-update.sh"
+UPDATE_SCRIPT_PATH = "/usr/local/bin/home-automation-update.sh"
 COMMAND_REBOOT = "sudo reboot"
 
 def update_application() -> {}:

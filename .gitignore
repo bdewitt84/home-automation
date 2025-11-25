@@ -6,6 +6,10 @@ venv/
 
 # IDE
 .idea/
+*.iml
+
+# Project
+./config
 
 # FastAPI/Uvicorn
 # (logs, db files, etc., if applicable)

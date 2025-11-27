@@ -1,0 +1,43 @@
+[Unit]
+
+Description=Home Automation FastAPI Service
+
+After=network.target
+
+
+[Service]
+
+
+# --- Security and Stability ---
+
+User=user
+WorkingDirectory=/home/user/home-automation
+
+# Assumes ExecStart is the main process and systemd should manage it directly.
+Type=simple
+
+# If the service fails to stop quickly (e.g., Python hangs), systemd will wait
+# 10 seconds before forcibly killing it (SIGKILL).
+TimeoutStopSec=10
+
+# Standard: Directs stdout (Uvicorn's INFO logs) to the system journal (journalctl)
+StandardOutput=journal
+
+# Directs stderr (tracebacks) to the journal.
+StandardError=journal
+
+
+# --- Execution ---
+
+# Important: Ensures systemctl stop sends a clean termination signal (Ctrl+C) to
+# Uvicorn, allowing it to shut down gracefully instead of a forceful kill.
+ExecStop=/bin/kill -s SIGINT $MAINPID
+
+ExecStart=/home/user/home-automation/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
+
+Restart=always
+
+
+[Install]
+
+WantedBy=multi-user.target

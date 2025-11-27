@@ -9,7 +9,7 @@ venv/
 *.iml
 
 # Project
-./config
+./config/git_pull_token.env
 
 # FastAPI/Uvicorn
 # (logs, db files, etc., if applicable)

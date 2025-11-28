@@ -13,13 +13,13 @@ echo "--- home-automation deployment script ---"
 echo "Setting up Python virtual environment..."
 if [ ! -d "$APP_DIR/.venv" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv "$APP_DIR/.venv" || { echo "Error: failed to create venv."; exit 1; }
+    python3 -m venv "$APP_DIR/.venv" || { echo "Error: failed to create venv." >&2 ; exit 1; }
 fi
 
 # Install dependencies
 source "$APP_DIR/.venv/bin/activate"
-pip install --quiet --upgrade pip || { echo "Error: failed to perform upgrade on pip."; exit 1; }
-pip install --quiet --requirement "$APP_DIR/requirements.txt" || { echo "Error: failed to install dependencies."; exit 1; }
+pip install --quiet --upgrade pip || { echo "Error: failed to perform upgrade on pip." >&2; exit 1; }
+pip install --quiet --requirement "$APP_DIR/requirements.txt" || { echo "Error: failed to install dependencies." >&2; exit 1; }
 deactivate
 echo "Virtual environment ready."
 
@@ -33,7 +33,7 @@ SUDO_ENTRY="user ALL=NOPASSWD: /usr/sbin/systemctl restart $SERVICE_NAME"
 # TODO: We assume the user is 'user'. Create a dynamic approach.
 if ! grep -q "$SUDO_ENTRY" $SUDOERS_FILE 2>/dev/null; then
     # We use tee to write to a root-owned file
-    echo "$SUDO_ENTRY" | sudo tee $SUDOERS_FILE > /dev/null || { echo "Error: failed to update sudoers file."; exit 1; }
+    echo "$SUDO_ENTRY" | sudo tee $SUDOERS_FILE > /dev/null || { echo "Error: failed to update sudoers file." >&2; exit 1; }
     echo "Sudoers configured for 'user'."
 else
     echo "Sudoers entry already exists."
@@ -42,20 +42,20 @@ fi
 # Deploy System Files
 echo "Deploying unit file..."
 # Copy unit file and reload daemon
-sudo cp "$UNIT_FILE" /etc/systemd/system/ || { echo "Error: failed to copy unit file."; exit 1; }
+sudo cp "$UNIT_FILE" /etc/systemd/system/ || { echo "Error: failed to copy unit file." >&2; exit 1; }
 sudo systemctl daemon-reload || { echo "Error: failed to reload daemon."; exit 1; }
 echo "Unit file deployed."
 
 echo "Deploying update script..."
 # Copy and enable execute permissions for update script
-sudo cp "$UPDATE_SCRIPT" /usr/local/bin/ || { echo "Error: failed to copy update script."; exit 1; }
-sudo chmod +x /usr/local/bin/home-automation-update.sh || { echo "Error: failed to set executable permissions."; exit 1; }
+sudo cp "$UPDATE_SCRIPT" /usr/local/bin/ || { echo "Error: failed to copy update script." >&2; exit 1; }
+sudo chmod +x /usr/local/bin/home-automation-update.sh || { echo "Error: failed to set executable permissions." >&2; exit 1; }
 echo "Update script deployed."
 
 # Enable and Start Service
 echo "Enabling and starting service..."
-sudo systemctl enable $SERVICE_NAME || { echo "Error: failed to enable service."; exit 1; }
-sudo systemctl start $SERVICE_NAME || { echo "Error: failed to start service."; exit 1; }
+sudo systemctl enable $SERVICE_NAME || { echo "Error: failed to enable service." >&2; exit 1; }
+sudo systemctl start $SERVICE_NAME || { echo "Error: failed to start service." >&2; exit 1; }
 
 # Final Status Check
 echo "--- POST-INSTALL SERVICE STATUS CHECK ---"

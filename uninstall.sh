@@ -58,7 +58,7 @@ else
 fi
 
 # Remove Sudoers File
-echo "3. Removing sudoers configuration..."
+echo "Removing sudoers configuration..."
 if [ -f "$SUDOERS_FILE" ]; then
     sudo rm -f "$SUDOERS_FILE"
     echo "Sudoers entry removed."
@@ -70,7 +70,7 @@ fi
 # --- MAIN APPLICATION REMOVAL ---
 
 # Optional: Remove source code (requires confirmation)
-read -p -r "Do you want to remove the local application directory (./home-automation)? [y/N]: " confirmation
+read -r -p "Do you want to remove the local application directory (./home-automation)? [y/N]: " confirmation
 
 if [[ "$confirmation" =~ ^[Yy]$ ]]; then
     # Assuming the user runs this from the parent directory of home-automation
@@ -80,4 +80,4 @@ fi
 
 echo "--- UNINSTALL COMPLETE ---"
 
-exit "$ERROR_LEVEL"
+exit $ERROR_LEVEL

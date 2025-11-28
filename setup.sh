@@ -34,7 +34,7 @@ SUDO_ENTRY="user ALL=NOPASSWD: /usr/sbin/systemctl restart $SERVICE_NAME"
 if ! grep -q "$SUDO_ENTRY" $SUDOERS_FILE 2>/dev/null; then
     # We use tee to write to a root-owned file
     echo "$SUDO_ENTRY" | sudo tee $SUDOERS_FILE > /dev/null || { echo "Error: failed to update sudoers file."; exit 1; }
-    echo "Sudoers configured for user."
+    echo "Sudoers configured for 'user'."
 else
     echo "Sudoers entry already exists."
 fi
@@ -58,6 +58,18 @@ sudo systemctl enable $SERVICE_NAME || { echo "Error: failed to enable service."
 sudo systemctl start $SERVICE_NAME || { echo "Error: failed to start service."; exit 1; }
 
 # Final Status Check
-echo "--- DEPLOYMENT COMPLETE ---"
+echo "--- POST-INSTALL SERVICE STATUS CHECK ---"
 sudo systemctl status $SERVICE_NAME --no-pager | head -n 5
-echo "Service should now be accessible at http://<RPI_IP>:8000"
+echo "--- DEPLOYMENT COMPLETE ---"
+
+echo "Service should now be accessible at:"
+echo "http://$(hostname):8000"
+
+# Display accessible IPs
+ip a | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | while read -r IP_CIDR; do
+    # Remove the CIDR suffix (e.g., /24)
+    IP=$(echo "$IP_CIDR" | cut -d/ -f1)
+    echo "http://$IP:8000"
+done
+
+exit 0

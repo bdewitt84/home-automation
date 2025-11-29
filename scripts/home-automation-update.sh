@@ -4,7 +4,7 @@
 # Locate resources
 
 echo "--- home-automation update script ---"
-APP_DIR="./.."
+APP_DIR="./"
 CRED_FILE="$APP_DIR/config/git_pull_token.env"
 cd $APP_DIR || {
 	echo "Error: failed to change directory to $APP_DIR" >&2
@@ -19,7 +19,7 @@ echo "Looking up credential file..."
 if [ -f "$CRED_FILE" ]; then
 	source "$CRED_FILE"
 else
-	echo "Error: failed to find git credentials" >&2; exit 1;
+	echo "Error: failed to find git credentials at $CRED_FILE, CWD=$(pwd)" >&2; exit 1;
 fi
 echo "Credential file located."
 

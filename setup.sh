@@ -5,7 +5,6 @@
 APP_DIR=$(pwd)
 SERVICE_NAME="home-automation.service"
 UNIT_FILE="$APP_DIR/config/$SERVICE_NAME"
-UPDATE_SCRIPT="$APP_DIR/scripts/home-automation-update.sh"
 
 echo "--- home-automation deployment script ---"
 

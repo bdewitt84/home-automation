@@ -4,7 +4,6 @@
 
 SERVICE_NAME="home-automation.service"
 SUDOERS_FILE="/etc/sudoers.d/home-automation"
-UPDATE_SCRIPT="/usr/local/bin/home-automation-update.sh"
 
 
 # --- SERVICE DEACTIVATION AND REMOVAL ---

@@ -1,10 +1,10 @@
 #!/bin/bash
-
+# scripts/home-automation-update.sh
 
 # Locate resources
 
 echo "--- home-automation update script ---"
-APP_DIR="/home/user/home-automation"
+APP_DIR="./.."
 CRED_FILE="$APP_DIR/config/git_pull_token.env"
 cd $APP_DIR || {
 	echo "Error: failed to change directory to $APP_DIR" >&2
@@ -53,20 +53,6 @@ deactivate || {
 	exit 1
 	}
 echo "Dependency update successful"
-
-
-# Copy recently pulled version of this update script to system directory
-
-echo "Refreshing update script..."
-sudo cp $APP_DIR/scripts/home-automation-update.sh /usr/local/bin || {
-	echo "Error: failed to copy update script" >&2
-	exit 1
-	}
-sudo chmod +x /usr/local/bin/home-automation-update.sh || {
-	echo "Error: failed to add execute permissions to update script" >&2
-	exit 1
-	}
-echo "Update script update successful"
 
 
 # Copy updated systemd unit file to system directory

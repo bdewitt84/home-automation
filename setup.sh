@@ -46,12 +46,6 @@ sudo cp "$UNIT_FILE" /etc/systemd/system/ || { echo "Error: failed to copy unit 
 sudo systemctl daemon-reload || { echo "Error: failed to reload daemon."; exit 1; }
 echo "Unit file deployed."
 
-echo "Deploying update script..."
-# Copy and enable execute permissions for update script
-sudo cp "$UPDATE_SCRIPT" /usr/local/bin/ || { echo "Error: failed to copy update script." >&2; exit 1; }
-sudo chmod +x /usr/local/bin/home-automation-update.sh || { echo "Error: failed to set executable permissions." >&2; exit 1; }
-echo "Update script deployed."
-
 # Enable and Start Service
 echo "Enabling and starting service..."
 sudo systemctl enable $SERVICE_NAME || { echo "Error: failed to enable service." >&2; exit 1; }

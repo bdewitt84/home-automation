@@ -48,14 +48,6 @@ echo "Service removal steps complete."
 
 # --- SUPPORT FILES REMOVAL ---
 
-# Remove Update Script
-echo "Removing update script..."
-if [ -f "$UPDATE_SCRIPT" ]; then
-  sudo rm -f $UPDATE_SCRIPT || { echo "ERROR: Failed to remove update script" >&2; ERROR_LEVEL=1; }
-  echo "Update script removed."
-else
-  echo "Update script not found"
-fi
 
 # Remove Sudoers File
 echo "Removing sudoers configuration..."

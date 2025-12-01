@@ -1,14 +1,7 @@
 # interfaces/media_control_interface.py
 
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
-
-
-class MediaControlStatus(BaseModel):
-    state: str = "N/A"
-    volume: int = 0
-    time: int = 0
-    length: int = 0
+from interfaces.schemas import MediaControlStatus
 
 
 class MediaControlInterface(ABC):

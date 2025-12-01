@@ -4,7 +4,7 @@ from services.media.vlc_media_control import VLCMediaControl
 
 
 def play() -> dict:
-    media_control = VLCMediaControl('localhost:8080', 'your_password')
+    media_control = VLCMediaControl('http://localhost:8080', 'your_password')
     status = media_control.play()
     return status.__dict__
 

@@ -1,12 +1,10 @@
 # services/media_control_service.py
+from interfaces.media_control_interface import MediaControlInterface
 
-from services.media.vlc_media_control import VLCMediaControl
 
-
-def play() -> dict:
-    media_control = VLCMediaControl('http://localhost:8080', 'your_password')
+def play(media_control: MediaControlInterface) -> dict:
     status = media_control.play()
-    return status.__dict__
+    return status.model_dump()
 
 def stop() -> dict:
     return {'message': 'stop stub'}

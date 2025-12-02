@@ -7,7 +7,8 @@ from config.project import PROJECT_ROOT
 UPDATE_SCRIPT_RELATIVE_PATH = "./scripts/home-automation-update.sh"
 COMMAND_REBOOT = "sudo reboot"
 
-def update_application() -> {}:
+
+def update_application() -> dict:
     """
     Executes application update script
     :return:

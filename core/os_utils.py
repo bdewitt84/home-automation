@@ -2,7 +2,7 @@
 import subprocess
 
 
-def execute_shell_command(command: str) -> {}:
+def execute_shell_command(command: str) -> dict:
     """
     :param command:
     :return:

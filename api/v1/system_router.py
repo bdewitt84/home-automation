@@ -6,5 +6,5 @@ from services import system_service
 system_router = APIRouter(tags=["system"])
 
 @system_router.get("/update_application")
-async def update_application():
+async def update_application() -> dict:
     return system_service.update_application()

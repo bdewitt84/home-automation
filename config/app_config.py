@@ -1,4 +1,5 @@
-CONTAINER_KEY = 'container_key'
+CONTAINER_KEY = 'container_singleton'
+EVENT_BUS_KEY = 'event_bus_singleton'
 
 MEDIA_CONTROL_KEY = 'vlc_media_controller'
 MEDIA_CONTROL_URL = 'http://127.0.0.1:8080'

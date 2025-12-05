@@ -1,14 +1,22 @@
 # app.dependencies.factories
 
 from app.container import DependencyContainer
-from config.app_config import MEDIA_CONTROL_KEY, EVENT_BUS_KEY
+from app.dependencies.container_keys import (
+    MEDIA_CONTROL_KEY,
+    EVENT_BUS_KEY,
+    APP_SETTINGS_KEY
+)
+from config.settings import AppSettings
 from services.media.vlc_media_control import VLCMediaControl
 from services.media.media_control_service import MediaControlService
 # from services.system_service import SystemService
 from events.event_bus import ASyncEventBus
 
 
-def vlc_media_control_factory(url: str, password: str):
+def vlc_media_control_factory(container: DependencyContainer):
+    settings: AppSettings = container.resolve(APP_SETTINGS_KEY)
+    url = settings.media.URL
+    password = settings.media.PASSWORD
     return VLCMediaControl(url, password)
 
 

@@ -2,21 +2,21 @@
 
 from fastapi import FastAPI
 from app.container import DependencyContainer
+from config.settings import settings
 from events.event_bus import ASyncEventBus
-from app.dependencies.factories import (
-    vlc_media_control_factory,
-    async_event_bus_factory,
-    # system_service_factory,
-    media_control_service_factory,
-)
-from config.app_config import (
-    MEDIA_CONTROL_URL,
-    MEDIA_CONTROL_PASSWORD,
+from app.dependencies.container_keys import (
     MEDIA_CONTROL_KEY,
     CONTAINER_KEY,
     EVENT_BUS_KEY,
     MEDIA_CONTROL_SERVICE_KEY,
     SYSTEM_SERVICE_KEY,
+    APP_SETTINGS_KEY,
+)
+from app.dependencies.factories import (
+    vlc_media_control_factory,
+    async_event_bus_factory,
+    # system_service_factory,
+    media_control_service_factory,
 )
 
 
@@ -25,13 +25,16 @@ def configure_state(app: FastAPI) -> None:
     # Get dependency container
     container: DependencyContainer = getattr(app.state, CONTAINER_KEY)
 
+    # Register settings
+    container.register_singleton(
+        APP_SETTINGS_KEY,
+        lambda: settings,
+    )
+
     # Register media controller
     container.register_singleton(
         MEDIA_CONTROL_KEY,
-        lambda: vlc_media_control_factory(
-            MEDIA_CONTROL_URL,
-            MEDIA_CONTROL_PASSWORD
-        )
+        lambda: vlc_media_control_factory(container),
     )
 
     # Register event bus

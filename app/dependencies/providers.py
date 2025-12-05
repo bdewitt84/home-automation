@@ -4,7 +4,12 @@ from app.container import DependencyContainer
 from interfaces.media_control_interface import MediaControlInterface
 from events.event_bus import ASyncEventBus
 from fastapi import Request, HTTPException
-from config.app_config import MEDIA_CONTROL_KEY, CONTAINER_KEY, EVENT_BUS_KEY, MEDIA_CONTROL_SERVICE_KEY
+from app.dependencies.container_keys import (
+    MEDIA_CONTROL_KEY,
+    CONTAINER_KEY,
+    EVENT_BUS_KEY,
+    MEDIA_CONTROL_SERVICE_KEY
+)
 from services.media.media_control_service import MediaControlService
 
 

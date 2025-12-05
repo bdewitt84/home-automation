@@ -4,9 +4,11 @@ from fastapi import FastAPI
 from api.v1.v1_router import v1_router
 from app.state import configure_state, shutdown_state
 from app.container import DependencyContainer
-from config.app_config import CONTAINER_KEY
+from app.dependencies.container_keys import CONTAINER_KEY
+
 
 dependency_container = DependencyContainer()
+
 app = FastAPI(description="home-automation-service")
 
 setattr(app.state, CONTAINER_KEY, dependency_container)

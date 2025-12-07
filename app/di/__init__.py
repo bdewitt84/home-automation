@@ -1,4 +1,4 @@
-# app/dependencies/providers.py
+# app/di/providers.py
 
 from interfaces.media_control_interface import MediaControlInterface
 from fastapi import Request

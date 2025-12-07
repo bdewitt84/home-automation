@@ -1,8 +1,8 @@
-# app/dependencies/factories/async_event_bus_factory.py
+# app/di/factories/async_event_bus_factory.py
 
 from interfaces.factory_interface import FactoryInterface
-from app.dependencies.container_keys import MEDIA_CONTROL_KEY, EVENT_BUS_KEY
-from app.container import DependencyContainer
+from app.di.keys import MEDIA_CONTROL_KEY, EVENT_BUS_KEY
+from app.di.container import DependencyContainer
 from services.media.media_control_service import MediaControlService
 
 

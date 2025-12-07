@@ -1,8 +1,8 @@
-# app/dependencies/factories/async_event_bus_factory.py
+# app/di/factories/async_event_bus_factory.py
 
 from events.event_bus import ASyncEventBus
 from interfaces.factory_interface import FactoryInterface
-from app.container import DependencyContainer
+from app.di.container import DependencyContainer
 
 
 class ASyncEventBusFactory(FactoryInterface):

@@ -1,8 +1,8 @@
-# app/dependencies/providers.py
+# api/providers.py
 
-from app.container import DependencyContainer
+from app.di.container import DependencyContainer
 from fastapi import Request, HTTPException
-from app.dependencies.container_keys import (
+from app.di.keys import (
     CONTAINER_KEY, MEDIA_CONTROL_SERVICE_KEY,
 )
 

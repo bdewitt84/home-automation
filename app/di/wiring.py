@@ -6,9 +6,9 @@
 """
 
 from fastapi import FastAPI
-from app.container import DependencyContainer
+from app.di.container import DependencyContainer
 
-from app.dependencies.container_keys import (
+from app.di.keys import (
     MEDIA_CONTROL_KEY,
     EVENT_BUS_KEY,
     APP_SETTINGS_KEY,
@@ -16,7 +16,7 @@ from app.dependencies.container_keys import (
     MEDIA_CONTROL_SERVICE_KEY,
 )
 
-from app.dependencies.factories import (
+from app.di.factories import (
     VlcMediaControlFactory,
     ASyncEventBusFactory,
     MediaControlServiceFactory,

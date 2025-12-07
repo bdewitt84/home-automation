@@ -1,9 +1,9 @@
-# app/dependencies/factories/vlc_media_control_factory.py
+# app/di/factories/vlc_media_control_factory.py
 
 from interfaces.factory_interface import FactoryInterface
-from app.container import DependencyContainer
+from app.di.container import DependencyContainer
 from config.settings import AppSettings
-from app.dependencies.container_keys import APP_SETTINGS_KEY
+from app.di.keys import APP_SETTINGS_KEY
 from services.media.vlc_media_control import VLCMediaControl
 
 

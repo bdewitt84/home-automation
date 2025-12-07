@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends
 from services.media import media_control_service
-from app.dependencies.providers import get_media_control_service
+from api.providers import get_media_control_service
 from services.media.media_control_service import MediaControlService
 
 

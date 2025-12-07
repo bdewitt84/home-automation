@@ -1,4 +1,4 @@
-# app/container.py
+# app/di/container.py
 
 from typing import Callable, Any
 
@@ -23,5 +23,3 @@ class DependencyContainer:
             self._singletons[key] = singleton
 
         return self._singletons[key]
-
-

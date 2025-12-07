@@ -1,4 +1,4 @@
-# config/container_keys.py
+# config/keys.py
 
 CONTAINER_KEY = 'container_singleton'
 EVENT_BUS_KEY = 'event_bus_singleton'

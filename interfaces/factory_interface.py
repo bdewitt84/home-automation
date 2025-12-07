@@ -1,7 +1,7 @@
 # interfaces/factory_interface
 
 from abc import ABC, abstractmethod
-from app.container import DependencyContainer
+from app.di.container import DependencyContainer
 
 
 class FactoryInterface(ABC):

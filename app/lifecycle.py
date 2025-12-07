@@ -1,11 +1,18 @@
-# app.state.py
+# app.lifecycle.py
 
 from fastapi import FastAPI
 
-from app.wiring import get_dependency_container, register_settings, register_and_start_event_bus, \
-    register_media_controller, register_media_service
+from app.di.wiring import (
+    get_dependency_container,
+    register_settings,
+    register_and_start_event_bus,
+    register_media_controller,
+    register_media_service,
+)
+
 from events.event_bus import ASyncEventBus
-from app.dependencies.container_keys import (
+
+from app.di.keys import (
     CONTAINER_KEY,
     EVENT_BUS_KEY,
 )

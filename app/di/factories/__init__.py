@@ -1,4 +1,4 @@
-# app/dependencies/factories/__init__.py
+# app/di/factories/__init__.py
 
 from .vlc_media_control_factory import VlcMediaControlFactory
 from .media_control_service_factory import MediaControlServiceFactory

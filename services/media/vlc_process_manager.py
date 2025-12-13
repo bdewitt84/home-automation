@@ -7,7 +7,7 @@ from asyncio import StreamReader, create_subprocess_exec, subprocess
 
 class VLCProcessManager:
 
-    def __init__(self, host: str, port: int, password: str):
+    def __init__(self, host: str, port: str, password: str):
         self.host = host
         self.port = port
         self.password = password
@@ -56,7 +56,7 @@ class VLCProcessManager:
 
         cmd = 'vlc'
         args = [
-            r' -I', r'http',
+            r'-I', r'http',
             r'--http-host', self.host,
             r'--http-port', self.port,
             r'--http-password', self.password,

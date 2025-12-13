@@ -15,8 +15,8 @@ class VlcProcessManagerFactory(FactoryInterface):
     def create(self):
         settings: AppSettings = self._container.resolve(APP_SETTINGS_KEY)
 
-        url: str = settings.url
-        port: int = settings.port
-        password: str = settings.password
+        host: str = settings.vlc.HOST
+        port: int = settings.vlc.PORT
+        password: str = settings.vlc.PASSWORD
 
-        return VLCProcessManager(url, port, password)
+        return VLCProcessManager(host, port, password)

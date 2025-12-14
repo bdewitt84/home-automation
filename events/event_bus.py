@@ -1,11 +1,12 @@
 import asyncio
 from typing import Callable, Type, Any
 from events.base import BaseEvent
+from interfaces import LifecycleManagementInterface
 
 
 EventHandler = Callable[[BaseEvent], Any]
 
-class ASyncEventBus():
+class ASyncEventBus(LifecycleManagementInterface):
     def __init__(self):
         self._subscribers: dict[Type[BaseEvent], list[EventHandler]] = {}
         self._queue: asyncio.Queue[BaseEvent | None] = asyncio.Queue()
@@ -37,10 +38,10 @@ class ASyncEventBus():
 
             self._queue.task_done()
 
-    def start(self) -> None:
+    async def start(self) -> None:
         if not self._processing_task:
             self._processing_task = asyncio.create_task(self.process_events())
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         if self._processing_task:
             self._queue.put_nowait(None)

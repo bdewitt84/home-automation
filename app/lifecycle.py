@@ -18,6 +18,7 @@ from events.event_bus import ASyncEventBus
 from app.di.keys import (
     EVENT_BUS_KEY, VLC_PROCESS_MANAGER_KEY,
 )
+from interfaces import LifecycleManagementInterface
 
 from services.media import VLCProcessManager
 
@@ -52,12 +53,12 @@ async def startup_state(app: FastAPI) -> None:
     :returns: None
     """
     container = get_dependency_container(app)
+    singleton_keys = container.get_registered_singleton_keys()
 
-    # --- Start event bus ---
-    start_event_bus(container)
-
-    # --- Start subprocesses ---
-    await start_vlc_process_manager(container)
+    for key in singleton_keys:
+        instance = container.resolve(key)
+        if isinstance(instance, LifecycleManagementInterface):
+            await instance.start()
 
 
 async def shutdown_state(app: FastAPI) -> None:
@@ -67,11 +68,9 @@ async def shutdown_state(app: FastAPI) -> None:
     :returns: None
     """
     container = get_dependency_container(app)
+    singleton_keys = container.get_registered_singleton_keys()
 
-    # --- Shut down bus ---
-    bus:ASyncEventBus = container.resolve(EVENT_BUS_KEY)
-    bus.stop()
-
-    # --- Shut down VLC process ---
-    vlc_process_manager = container.resolve(VLC_PROCESS_MANAGER_KEY)
-    await vlc_process_manager.stop()
+    for key in singleton_keys:
+        instance = container.resolve(key)
+        if isinstance(instance, LifecycleManagementInterface):
+            await instance.stop()

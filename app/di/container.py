@@ -23,3 +23,6 @@ class DependencyContainer:
             self._singletons[key] = singleton
 
         return self._singletons[key]
+
+    def get_registered_singleton_keys(self) -> list[Any]:
+        return list(self._factories.keys())

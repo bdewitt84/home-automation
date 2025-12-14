@@ -3,9 +3,10 @@
 from typing import Optional
 import asyncio
 from asyncio import StreamReader, create_subprocess_exec, subprocess
+from interfaces import LifecycleManagementInterface
 
 
-class VLCProcessManager:
+class VLCProcessManager(LifecycleManagementInterface):
 
     def __init__(self, host: str, port: str, password: str):
         self.host = host

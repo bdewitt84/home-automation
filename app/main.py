@@ -2,17 +2,20 @@
 
 from fastapi import FastAPI
 from api.v1.v1_router import v1_router
+from app.di.lifecycle_manager import LifeCycleManager
 from app.lifecycle import configure_state, shutdown_state, startup_state
 from app.di.container import DependencyContainer
-from app.di.keys import CONTAINER_KEY
-
+from app.di.keys import CONTAINER_KEY, LIFECYCLE_MANAGER_KEY
 
 # Start the FastAPI application
 app = FastAPI(description="home-automation-service")
 
-# Create the dependency container and attach to application state
+# Create the dependency container and lifecycle manager,
+# and attach them to the application state
 dependency_container = DependencyContainer()
+lifecycle_manager = LifeCycleManager()
 setattr(app.state, CONTAINER_KEY, dependency_container)
+setattr(app.state, LIFECYCLE_MANAGER_KEY, lifecycle_manager)
 
 async def startup_state_wrapper():
     await startup_state(app)

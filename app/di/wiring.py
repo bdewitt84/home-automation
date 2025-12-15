@@ -7,21 +7,24 @@
 
 from fastapi import FastAPI
 from app.di.container import DependencyContainer
-from app.di.factories.vlc_process_manager_factory import VlcProcessManagerFactory
 
 from app.di.keys import (
     MEDIA_CONTROL_KEY,
     EVENT_BUS_KEY,
     APP_SETTINGS_KEY,
     CONTAINER_KEY,
-    MEDIA_CONTROL_SERVICE_KEY, VLC_PROCESS_MANAGER_KEY,
+    MEDIA_CONTROL_SERVICE_KEY,
+    VLC_PROCESS_MANAGER_KEY,
+    LIFECYCLE_MANAGER_KEY,
 )
 
 from app.di.factories import (
     VlcMediaControlFactory,
     ASyncEventBusFactory,
     MediaControlServiceFactory,
+    VlcProcessManagerFactory,
 )
+from app.di.lifecycle_manager import LifeCycleManager
 
 from config.settings import settings
 from events.event_bus import ASyncEventBus
@@ -29,13 +32,18 @@ from events.event_bus import ASyncEventBus
 
 def get_dependency_container(app: FastAPI) -> DependencyContainer:
     """
-    Get dependency container from applicaiton state. Container is initialized
+    Get dependency container from application state. Container is initialized
     in app.main.py
     :param app: FastAPI application
     :returns: dependency container
     """
     container: DependencyContainer = getattr(app.state, CONTAINER_KEY)
     return container
+
+
+def get_lifecycle_manager(app: FastAPI) -> LifeCycleManager:
+    manager: LifeCycleManager = getattr(app.state, LIFECYCLE_MANAGER_KEY)
+    return manager
 
 
 def register_media_controller(container: DependencyContainer):
@@ -52,7 +60,7 @@ def register_media_controller(container: DependencyContainer):
 
 def register_event_bus(container: DependencyContainer):
     """
-    Registers the asyncronous event bus with the dependency container
+    Registers the asynchronous event bus with the dependency container
     and starts the event bus.
     :param container: dependency container
     :returns: None

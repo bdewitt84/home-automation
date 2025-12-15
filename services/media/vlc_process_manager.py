@@ -4,6 +4,8 @@ from typing import Optional
 import asyncio
 from asyncio import StreamReader, create_subprocess_exec, subprocess
 from interfaces import LifecycleManagementInterface
+from app.di.registry import register_service
+from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
 @register_service(key=VLC_PROCESS_MANAGER_KEY, lifecycle=True)

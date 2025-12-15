@@ -4,7 +4,7 @@ from app.di.container import DependencyContainer
 from app.di.keys import APP_SETTINGS_KEY
 from config.settings import AppSettings
 from interfaces.factory_interface import FactoryInterface
-from services.media import VLCProcessManager
+from services.media import VlcProcessManager
 
 
 class VlcProcessManagerFactory(FactoryInterface):
@@ -19,4 +19,4 @@ class VlcProcessManagerFactory(FactoryInterface):
         port: int = settings.vlc.PORT
         password: str = settings.vlc.PASSWORD
 
-        return VLCProcessManager(host, port, password)
+        return VlcProcessManager(host, port, password)

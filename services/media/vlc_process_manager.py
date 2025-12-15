@@ -6,7 +6,8 @@ from asyncio import StreamReader, create_subprocess_exec, subprocess
 from interfaces import LifecycleManagementInterface
 
 
-class VLCProcessManager(LifecycleManagementInterface):
+@register_service(key=VLC_PROCESS_MANAGER_KEY, lifecycle=True)
+class VlcProcessManager(LifecycleManagementInterface):
 
     def __init__(self, host: str, port: str, password: str):
         self.host = host

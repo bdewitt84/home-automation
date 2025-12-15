@@ -1,1 +1,1 @@
-from .vlc_process_manager import VLCProcessManager
+from .vlc_process_manager import VlcProcessManager

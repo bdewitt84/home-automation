@@ -2,16 +2,18 @@
 
 from fastapi import FastAPI
 
+from app.di.container import DependencyContainer
+from app.di.lifecycle_manager import LifeCycleManager
 from app.di.wiring import (
     get_dependency_container,
+    get_lifecycle_manager,
     register_settings,
     register_event_bus,
-    start_event_bus,
     register_media_controller,
     register_media_service,
-    register_vlc_process_manager,
-    start_vlc_process_manager,
 )
+
+from typing import Type
 
 from events.event_bus import ASyncEventBus
 
@@ -19,8 +21,41 @@ from app.di.keys import (
     EVENT_BUS_KEY, VLC_PROCESS_MANAGER_KEY,
 )
 from interfaces import LifecycleManagementInterface
+from interfaces.factory_interface import FactoryInterface
 
-from services.media import VLCProcessManager
+from services.media import VlcProcessManager
+import pkgutil
+import importlib
+from app.di.registry import SERVICE_REGISTRY
+
+SERVICE_PACKAGE_NAME = 'services'
+
+
+def _import_services(path):
+    package = importlib.import_module(path)
+    for _finder, name, _is_pkg in pkgutil.walk_packages(package.__path__):
+        module_name = package.__name__ + '.' + name
+        importlib.import_module(module_name)
+
+
+def _register_services_with_dependency_container(registry, container: DependencyContainer):
+    for _service_cls, metadata in registry.items():
+        key = metadata['key']
+        # factory: Type[FactoryInterface] = metadata['factory']
+        factory_name = _service_cls.__name__ + 'Factory'
+        factory_package_path = 'app.di.factories'
+        factory_package = importlib.import_module(factory_package_path)
+        factory_cls = getattr(factory_package, factory_name)
+
+        container.register_singleton(key, lambda: factory_cls(container).create())
+
+
+def _register_services_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
+    for _service_cls, metadata in registry.items():
+        if metadata['lifecycle'] is True:
+            key = metadata['key']
+            instance = container.resolve(key)
+            manager.index_singleton(instance)
 
 
 def configure_state(app: FastAPI) -> None:
@@ -31,13 +66,17 @@ def configure_state(app: FastAPI) -> None:
     """
 
     container = get_dependency_container(app)
+    manager = get_lifecycle_manager(app)
 
     # --- Register Application Singletons ---
     register_settings(container)
     register_event_bus(container)
 
     # --- Register Subprocess Singletons ---
-    register_vlc_process_manager(container)
+    # register_vlc_process_manager(container)
+    _import_services(SERVICE_PACKAGE_NAME)
+    _register_services_with_dependency_container(SERVICE_REGISTRY, container)
+    _register_services_with_lifecycle_manager(SERVICE_REGISTRY, container, manager)
 
     # --- Register Component Singletons ---
     register_media_controller(container)

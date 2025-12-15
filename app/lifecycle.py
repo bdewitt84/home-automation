@@ -51,8 +51,15 @@ def _register_services_with_dependency_container(registry, container: Dependency
 
 
 def _register_services_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
-    for _service_cls, metadata in registry.items():
-        if metadata['lifecycle'] is True:
+    SERVICE_CLS_INDEX = 0
+    METADATA_INDEX = 1
+
+    sorted_registry_items = sorted(
+        registry.items(),
+        key=lambda item: item[METADATA_INDEX]['lifecycle']
+    )
+    for _service_cls, metadata in sorted_registry_items:
+        if metadata['lifecycle'] > 0:
             key = metadata['key']
             instance = container.resolve(key)
             manager.index_singleton(instance)

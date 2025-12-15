@@ -8,7 +8,7 @@ from app.di.registry import register_service
 from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
-@register_service(key=VLC_PROCESS_MANAGER_KEY, lifecycle=True)
+@register_service(key=VLC_PROCESS_MANAGER_KEY, lifecycle=100)
 class VlcProcessManager(LifecycleManagementInterface):
 
     def __init__(self, host: str, port: str, password: str):

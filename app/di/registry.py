@@ -7,7 +7,7 @@ from interfaces.factory_interface import FactoryInterface
 SERVICE_REGISTRY: Dict[Type[Any], Dict[str, Any]] = {}
 
 
-def register_service(key:str, lifecycle: bool=False):
+def register_service(key:str, lifecycle: int=0):
 
     def decorator(cls):
         SERVICE_REGISTRY[cls] = {

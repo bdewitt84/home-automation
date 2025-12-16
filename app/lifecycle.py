@@ -26,7 +26,7 @@ from interfaces.factory_interface import FactoryInterface
 from services.media import VlcProcessManager
 import pkgutil
 import importlib
-from app.di.registry import SERVICE_REGISTRY
+from app.di.registry import COMPONENT_METADATA_REGISTRY
 
 SERVICE_PACKAGE_NAME = 'services'
 
@@ -82,8 +82,8 @@ def configure_state(app: FastAPI) -> None:
     # --- Register Subprocess Singletons ---
     # register_vlc_process_manager(container)
     _import_services(SERVICE_PACKAGE_NAME)
-    _register_services_with_dependency_container(SERVICE_REGISTRY, container)
-    _register_services_with_lifecycle_manager(SERVICE_REGISTRY, container, manager)
+    _register_services_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    _register_services_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
 
     # --- Register Component Singletons ---
     register_media_controller(container)

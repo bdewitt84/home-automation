@@ -4,11 +4,11 @@ from typing import Optional
 import asyncio
 from asyncio import StreamReader, create_subprocess_exec, subprocess
 from interfaces import LifecycleManagementInterface
-from app.di.registry import register_service
+from app.di.registry import register_component_with_container
 from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
-@register_service(key=VLC_PROCESS_MANAGER_KEY, lifecycle=100)
+@register_component_with_container(key=VLC_PROCESS_MANAGER_KEY, lifecycle=100)
 class VlcProcessManager(LifecycleManagementInterface):
 
     def __init__(self, host: str, port: str, password: str):

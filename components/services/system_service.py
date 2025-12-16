@@ -1,4 +1,4 @@
-# services/system_service.py
+# components/system_service.py
 import os
 
 from core import os_utils

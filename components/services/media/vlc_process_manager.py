@@ -1,4 +1,4 @@
-# services/media/vlc_process_manager.py
+# components/services/media/vlc_process_manager.py
 
 from typing import Optional
 import asyncio

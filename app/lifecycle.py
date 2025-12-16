@@ -21,14 +21,11 @@ from app.di.keys import (
     EVENT_BUS_KEY, VLC_PROCESS_MANAGER_KEY,
 )
 from interfaces import LifecycleManagementInterface
-from interfaces.factory_interface import FactoryInterface
-
-from services.media import VlcProcessManager
 import pkgutil
 import importlib
 from app.di.registry import COMPONENT_METADATA_REGISTRY
 
-SERVICE_PACKAGE_NAME = 'services'
+SERVICE_PACKAGE_NAME = 'components'
 
 
 def _import_services(path):

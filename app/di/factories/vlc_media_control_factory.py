@@ -4,7 +4,7 @@ from interfaces.factory_interface import FactoryInterface
 from app.di.container import DependencyContainer
 from config.settings import AppSettings
 from app.di.keys import APP_SETTINGS_KEY
-from services.media.vlc_media_control import VLCMediaControl
+from components.services.media.vlc_media_control import VLCMediaControl
 
 
 class VlcMediaControlFactory(FactoryInterface):

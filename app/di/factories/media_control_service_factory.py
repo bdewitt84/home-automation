@@ -3,7 +3,7 @@
 from interfaces.factory_interface import FactoryInterface
 from app.di.keys import MEDIA_CONTROL_KEY, EVENT_BUS_KEY
 from app.di.container import DependencyContainer
-from services.media.media_control_service import MediaControlService
+from components.services.media.media_control_service import MediaControlService
 
 
 class MediaControlServiceFactory(FactoryInterface):

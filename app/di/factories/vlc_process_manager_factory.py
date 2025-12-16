@@ -4,7 +4,7 @@ from app.di.container import DependencyContainer
 from app.di.keys import APP_SETTINGS_KEY
 from config.settings import AppSettings
 from interfaces.factory_interface import FactoryInterface
-from services.media import VlcProcessManager
+from components.services.media import VlcProcessManager
 
 
 class VlcProcessManagerFactory(FactoryInterface):

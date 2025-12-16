@@ -1,9 +1,9 @@
 # api/v1/media_router.py
 
 from fastapi import APIRouter, Depends
-from services.media import media_control_service
+from components.services.media import media_control_service
 from api.providers import get_media_control_service
-from services.media.media_control_service import MediaControlService
+from components.services.media.media_control_service import MediaControlService
 
 
 media_router = APIRouter(

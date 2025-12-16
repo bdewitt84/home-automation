@@ -1,4 +1,4 @@
-# services/media/vlc_media_control.py
+# components/services/media/vlc_media_control.py
 
 from interfaces.media_control_interface import MediaControlInterface, MediaControlStatus
 from xml.etree import ElementTree as ET

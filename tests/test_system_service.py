@@ -1,8 +1,8 @@
 # tests/test_system_service.py
 
 from unittest.mock import patch
-from services import system_service
-from services.system_service import UPDATE_SCRIPT_PATH # We import the constant for clarity
+from components.services import system_service
+from components.services.system_service import UPDATE_SCRIPT_PATH # We import the constant for clarity
 
 
 OS_UTILS_MOCK_PATH = 'core.os_utils.execute_shell_command'

@@ -5,11 +5,11 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-from services.media.vlc_media_control import VLCMediaControl
+from components.services.media.vlc_media_control import VLCMediaControl
 from interfaces.media_control_interface import MediaControlStatus
 
 
-MOCK_VLC_GET_PATH = 'services.vlc_media_control.requests.get'
+MOCK_VLC_GET_PATH = 'components.services.vlc_media_control.requests.get'
 MOCK_VLC_HTTP_SERVER_URL = 'http://127.0.0.1:8080'
 MOCK_VLC_PASSWORD = '<PASSWORD>'
 

@@ -13,14 +13,6 @@ from app.di.wiring import (
     register_media_service,
 )
 
-from typing import Type
-
-from events.event_bus import ASyncEventBus
-
-from app.di.keys import (
-    EVENT_BUS_KEY, VLC_PROCESS_MANAGER_KEY,
-)
-from interfaces import LifecycleManagementInterface
 import pkgutil
 import importlib
 from app.di.registry import COMPONENT_METADATA_REGISTRY
@@ -33,18 +25,34 @@ def _import_services(path):
     for _finder, name, _is_pkg in pkgutil.walk_packages(package.__path__):
         module_name = package.__name__ + '.' + name
         importlib.import_module(module_name)
+        print(f"Imported component {module_name}")
 
 
 def _register_services_with_dependency_container(registry, container: DependencyContainer):
     for _service_cls, metadata in registry.items():
         key = metadata['key']
-        # factory: Type[FactoryInterface] = metadata['factory']
+
         factory_name = _service_cls.__name__ + 'Factory'
         factory_package_path = 'app.di.factories'
-        factory_package = importlib.import_module(factory_package_path)
-        factory_cls = getattr(factory_package, factory_name)
 
-        container.register_singleton(key, lambda: factory_cls(container).create())
+        try:
+            factory_package = importlib.import_module(factory_package_path)
+            factory_cls = getattr(factory_package, factory_name)
+            # Python uses late binding closure to resolve lambda functions, so an statment like
+            # labmda: factory_cls(container)
+            # will take the values from the outer scope at the time the lambda was called, not
+            # when it was defined. This means every resolution with this key will use the
+            # variables available at the time of the last iteration before it was called.
+            # Here, we leverage the use of default values to capture the variables at the time
+            # of definition, side-stepping this late-binding closure policy. Without them,
+            # every resolution asked of the container would return an instance of the last
+            # class in the iteration of this for loop. Using functools.partial is also
+            # an acceptable solution.
+            container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
+            print(f"Imported {factory_cls.__name__} from {factory_package.__name__}")
+
+        except Exception as e:
+            raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
 def _register_services_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
@@ -55,12 +63,16 @@ def _register_services_with_lifecycle_manager(registry, container: DependencyCon
         registry.items(),
         key=lambda item: item[METADATA_INDEX]['lifecycle']
     )
+
+    print(f"Asking lifecycle manager to process registry: {[item[SERVICE_CLS_INDEX].__name__ for item in sorted_registry_items]}")
+
     for _service_cls, metadata in sorted_registry_items:
         if metadata['lifecycle'] > 0:
             key = metadata['key']
             instance = container.resolve(key)
+            print(f"Asking lifecycle manager to index {instance.__class__.__name__}")
             manager.index_singleton(instance)
-
+            
 
 def configure_state(app: FastAPI) -> None:
     """
@@ -95,13 +107,8 @@ async def startup_state(app: FastAPI) -> None:
     :param app: FastAPI application
     :returns: None
     """
-    container = get_dependency_container(app)
-    singleton_keys = container.get_registered_singleton_keys()
-
-    for key in singleton_keys:
-        instance = container.resolve(key)
-        if isinstance(instance, LifecycleManagementInterface):
-            await instance.start()
+    manager = get_lifecycle_manager(app)
+    await manager.start_registered()
 
 
 async def shutdown_state(app: FastAPI) -> None:
@@ -110,10 +117,5 @@ async def shutdown_state(app: FastAPI) -> None:
     :param app: FastAPI application
     :returns: None
     """
-    container = get_dependency_container(app)
-    singleton_keys = container.get_registered_singleton_keys()
-
-    for key in singleton_keys:
-        instance = container.resolve(key)
-        if isinstance(instance, LifecycleManagementInterface):
-            await instance.stop()
+    manager = get_lifecycle_manager(app)
+    await manager.stop_registered()

@@ -1,1 +1,2 @@
 from .lifecycle_management_interface import LifecycleManagementInterface
+from .factory_interface import FactoryInterface

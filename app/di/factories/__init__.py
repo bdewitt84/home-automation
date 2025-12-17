@@ -4,3 +4,4 @@ from .vlc_media_control_factory import VlcMediaControlFactory
 from .media_control_service_factory import MediaControlServiceFactory
 from .async_event_bus_factory import ASyncEventBusFactory
 from .vlc_process_manager_factory import VlcProcessManagerFactory
+from .async_http_client_factory import AsyncHttpClientFactory

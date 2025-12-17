@@ -1,4 +1,4 @@
 fastapi[standard]~=0.121.3
-requests~=2.32.5
 pydantic-settings~=2.12.0
 pydantic~=2.12.4
+httpx~=0.28.1

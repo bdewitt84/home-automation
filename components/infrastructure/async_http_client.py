@@ -14,12 +14,10 @@ class AsyncHttpClient(LifecycleManagementInterface):
         self.client: Optional[httpx.AsyncClient] = None
 
     async def start(self):
-        # self.client = httpx.AsyncClient()
-        pass
+        self.client = httpx.AsyncClient()
 
     async def stop(self):
-        # await self.client.aclose()
-        pass
+        await self.client.aclose()
 
     async def get(self, request_url: str, params: Optional[dict] = None, auth=Type[tuple[str, str]]) -> httpx.Response:
         response = await self.client.get(request_url, params=params, auth=auth)

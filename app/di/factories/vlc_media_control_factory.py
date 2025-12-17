@@ -3,7 +3,7 @@
 from interfaces.factory_interface import FactoryInterface
 from app.di.container import DependencyContainer
 from config.settings import AppSettings
-from app.di.keys import APP_SETTINGS_KEY
+from app.di.keys import APP_SETTINGS_KEY, ASYNC_HTTP_CLIENT_KEY
 from components.services.media.vlc_media_control import VLCMediaControl
 
 
@@ -13,6 +13,7 @@ class VlcMediaControlFactory(FactoryInterface):
 
     def create(self):
         settings: AppSettings = self._container.resolve(APP_SETTINGS_KEY)
+        client = self._container.resolve(ASYNC_HTTP_CLIENT_KEY)
         url = settings.media.URL
         password = settings.media.PASSWORD
-        return VLCMediaControl(url, password)
+        return VLCMediaControl(client, url, password)

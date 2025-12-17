@@ -13,7 +13,7 @@ media_router = APIRouter(
 
 @media_router.get("/play")
 async def media_play(media_control_service: MediaControlService = Depends(get_media_control_service)) -> dict:
-    return media_control_service.play()
+    return await media_control_service.play()
 
 
 @media_router.get("/stop")

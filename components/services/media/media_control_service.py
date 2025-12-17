@@ -11,8 +11,8 @@ class MediaControlService:
         self.bus = bus
 
 
-    def play(self) -> dict:
-        status = self.media_control.play()
+    async def play(self) -> dict:
+        status = await self.media_control.play()
         # extract status information for event
         # self.bus.publish(MediaPlayEvent())
         return status.model_dump()

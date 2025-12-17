@@ -5,8 +5,6 @@ from interfaces.schemas import MediaControlStatus
 
 
 class MediaControlInterface(ABC):
-    def __init__(self):
-        pass
 
     @abstractmethod
     def play(self) -> MediaControlStatus:

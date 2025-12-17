@@ -1,23 +1,24 @@
 # components/services/media/vlc_media_control.py
 
 from interfaces.media_control_interface import MediaControlInterface, MediaControlStatus
+from components.infrastructure import AsyncHttpClient
 from xml.etree import ElementTree as ET
-import requests
+import httpx
 
 
 class VLCMediaControl(MediaControlInterface):
 
-    def __init__(self, vlc_http_server_url: str, password: str=''):
-        super().__init__()
+    def __init__(self, client: AsyncHttpClient, vlc_http_server_url: str, password: str=''):
         self.vlc_http_server_url = vlc_http_server_url
         self.auth = ('', password)
+        self.client = client
 
     def _construct_request_url(self) -> str:
         return self.vlc_http_server_url + '/requests/status.xml'
 
-    def _send_command(self, params) -> requests.Response:
+    async def _send_command(self, params) -> httpx.Response:
         request_url = self._construct_request_url()
-        response = requests.get(request_url, auth=self.auth, params=params)
+        response = await self.client.get(request_url, auth=self.auth, params=params)
         response.raise_for_status()
         return response
 
@@ -69,23 +70,23 @@ class VLCMediaControl(MediaControlInterface):
             print(f"XML parser error: {e}")
             raise ValueError("Failed to parse XML response from VLC") from e
 
-    def play(self) -> MediaControlStatus:
+    async def play(self) -> MediaControlStatus:
         params = { 'command': 'pl_play' }
-        response = self._send_command(params)
+        response = await self._send_command(params)
         status = self._parse_response(response)
         return status
 
-    def stop(self) -> MediaControlStatus:
+    async def stop(self) -> MediaControlStatus:
         params = { 'command': 'pl_stop' }
-        response = self._send_command(params)
+        response = await self._send_command(params)
         status = self._parse_response(response)
         return status
 
-    def enqueue(self, filepath: str) -> MediaControlStatus:
+    async def enqueue(self, filepath: str) -> MediaControlStatus:
         params = {
             'command': 'in_enqueue',
             'input': filepath,
         }
-        response = self._send_command(params)
+        response = await self._send_command(params)
         status = self._parse_response(response)
         return status

@@ -1,7 +1,7 @@
 # components/media_control_service.py
 
 from interfaces.media_control_interface import MediaControlInterface
-from events.event_bus import ASyncEventBus
+from components.infrastructure.event_bus import ASyncEventBus
 # from events.media import MediaPlayEvent
 
 

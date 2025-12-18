@@ -1,6 +1,6 @@
 # app.subscriptions.py
 
-from events.event_bus import ASyncEventBus
+from components.infrastructure.event_bus import ASyncEventBus
 # from events.media import MediaPlayEvent
 
 

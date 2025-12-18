@@ -27,7 +27,7 @@ from app.di.factories import (
 from app.lifecycle_manager import LifeCycleManager
 
 from config.settings import settings
-from events.event_bus import ASyncEventBus
+from components.infrastructure.event_bus import ASyncEventBus
 
 
 def get_dependency_container(app: FastAPI) -> DependencyContainer:

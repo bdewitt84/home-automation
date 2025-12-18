@@ -1,4 +1,4 @@
-# app.lifecycle.py
+# app/lifecycle.py
 
 from fastapi import FastAPI
 
@@ -20,7 +20,7 @@ from app.di.registry import COMPONENT_METADATA_REGISTRY
 SERVICE_PACKAGE_NAME = 'components'
 
 
-def _import_services(path):
+def _import_components(path):
     package = importlib.import_module(path)
     for _finder, name, _is_pkg in pkgutil.walk_packages(package.__path__):
         module_name = package.__name__ + '.' + name
@@ -28,7 +28,7 @@ def _import_services(path):
         print(f"Imported component {module_name}")
 
 
-def _register_services_with_dependency_container(registry, container: DependencyContainer):
+def _register_components_with_dependency_container(registry, container: DependencyContainer):
     for _service_cls, metadata in registry.items():
         key = metadata['key']
 
@@ -55,7 +55,7 @@ def _register_services_with_dependency_container(registry, container: Dependency
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
-def _register_services_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
+def _register_components_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
     SERVICE_CLS_INDEX = 0
     METADATA_INDEX = 1
 
@@ -90,9 +90,9 @@ def configure_state(app: FastAPI) -> None:
 
     # --- Register Subprocess Singletons ---
     # register_vlc_process_manager(container)
-    _import_services(SERVICE_PACKAGE_NAME)
-    _register_services_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
-    _register_services_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
+    _import_components(SERVICE_PACKAGE_NAME)
+    _register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    _register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
 
     # --- Register Component Singletons ---
     register_media_controller(container)

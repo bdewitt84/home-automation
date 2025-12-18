@@ -24,7 +24,7 @@ from app.di.factories import (
     MediaControlServiceFactory,
     VlcProcessManagerFactory,
 )
-from app.di.lifecycle_manager import LifeCycleManager
+from app.lifecycle_manager import LifeCycleManager
 
 from config.settings import settings
 from events.event_bus import ASyncEventBus

@@ -2,7 +2,7 @@
 
 from typing import Any
 from interfaces import LifecycleManagementInterface
-import traceback
+
 
 class LifeCycleManager:
     def __init__(self):

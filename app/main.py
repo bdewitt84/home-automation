@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from api.v1.v1_router import v1_router
-from app.di.lifecycle_manager import LifeCycleManager
+from app.lifecycle_manager import LifeCycleManager
 from app.lifecycle import configure_state, shutdown_state, startup_state
 from app.di.container import DependencyContainer
 from app.di.keys import CONTAINER_KEY, LIFECYCLE_MANAGER_KEY

@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from app.di.container import DependencyContainer
-from app.di.lifecycle_manager import LifeCycleManager
+from app.lifecycle_manager import LifeCycleManager
 from app.di.wiring import (
     get_dependency_container,
     get_lifecycle_manager,

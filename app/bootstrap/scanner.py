@@ -1,27 +1,15 @@
-# app/lifecycle.py
+# app/bootstrap/scanner.py
 
-from fastapi import FastAPI
-from typing import Any, Type
+import importlib
+from typing import Type, Any
+import pkgutil
 
 from app.di.container import DependencyContainer
+from app.di.registry import ComponentMetadata
 from app.lifecycle_manager import LifeCycleManager
-from app.di.wiring import (
-    get_dependency_container,
-    get_lifecycle_manager,
-    register_settings,
-    register_event_bus,
-    register_media_controller,
-    register_media_service,
-)
-
-import pkgutil
-import importlib
-from app.di.registry import COMPONENT_METADATA_REGISTRY, ComponentMetadata
-
-SERVICE_PACKAGE_NAME = 'components'
 
 
-def _import_components(path):
+def import_components(path):
     package = importlib.import_module(path)
     for _finder, name, _is_pkg in pkgutil.walk_packages(package.__path__):
         module_name = package.__name__ + '.' + name
@@ -29,9 +17,8 @@ def _import_components(path):
         print(f"Imported component {module_name}")
 
 
-def _register_components_with_dependency_container(registry: dict[Type[Any],ComponentMetadata],
+def register_components_with_dependency_container(registry: dict[Type[Any], ComponentMetadata],
                                                    container: DependencyContainer):
-
     for _service_cls, metadata in registry.items():
         key = metadata['key']
 
@@ -54,11 +41,14 @@ def _register_components_with_dependency_container(registry: dict[Type[Any],Comp
             container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
             print(f"Imported {factory_cls.__name__} from {factory_package.__name__}")
 
+        except AttributeError:
+            print(f"⚠️ Warning: No factory found for {_service_cls.__name__}. Expected {factory_name}.")
+
         except Exception as e:
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
-def _register_components_with_lifecycle_manager(registry: dict[Type[Any],ComponentMetadata],
+def register_components_with_lifecycle_manager(registry: dict[Type[Any], ComponentMetadata],
                                                 container: DependencyContainer,
                                                 manager: LifeCycleManager):
     SERVICE_CLS_INDEX = 0
@@ -69,7 +59,8 @@ def _register_components_with_lifecycle_manager(registry: dict[Type[Any],Compone
         key=lambda item: item[METADATA_INDEX]['lifecycle']
     )
 
-    print(f"Asking lifecycle manager to process registry: {[item[SERVICE_CLS_INDEX].__name__ for item in sorted_registry_items]}")
+    print(
+        f"Asking lifecycle manager to process registry: {[item[SERVICE_CLS_INDEX].__name__ for item in sorted_registry_items]}")
 
     for _service_cls, metadata in sorted_registry_items:
         if metadata['lifecycle'] > 0:
@@ -77,50 +68,4 @@ def _register_components_with_lifecycle_manager(registry: dict[Type[Any],Compone
             instance = container.resolve(key)
             print(f"Asking lifecycle manager to index {instance.__class__.__name__}")
             manager.index_singleton(instance)
-            
 
-def configure_state(app: FastAPI) -> None:
-    """
-    Registered the singletons with the dependency container
-    :param app: FastAPI application
-    :returns: None
-    """
-
-    container = get_dependency_container(app)
-    manager = get_lifecycle_manager(app)
-
-    # --- Register Application Singletons ---
-    register_settings(container)
-    register_event_bus(container)
-
-    # --- Register Subprocess Singletons ---
-    # register_vlc_process_manager(container)
-    _import_components(SERVICE_PACKAGE_NAME)
-    _register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
-    _register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
-
-    # --- Register Component Singletons ---
-    register_media_controller(container)
-
-    # --- Register Service Singletons ---
-    register_media_service(container)
-
-
-async def startup_state(app: FastAPI) -> None:
-    """
-    Starts all startable dependencies
-    :param app: FastAPI application
-    :returns: None
-    """
-    manager = get_lifecycle_manager(app)
-    await manager.start_registered()
-
-
-async def shutdown_state(app: FastAPI) -> None:
-    """
-    Stops all stoppable dependencies
-    :param app: FastAPI application
-    :returns: None
-    """
-    manager = get_lifecycle_manager(app)
-    await manager.stop_registered()

@@ -1,6 +1,7 @@
 # app/lifecycle.py
 
 from fastapi import FastAPI
+from typing import Any, Type
 
 from app.di.container import DependencyContainer
 from app.lifecycle_manager import LifeCycleManager
@@ -15,7 +16,7 @@ from app.di.wiring import (
 
 import pkgutil
 import importlib
-from app.di.registry import COMPONENT_METADATA_REGISTRY
+from app.di.registry import COMPONENT_METADATA_REGISTRY, ComponentMetadata
 
 SERVICE_PACKAGE_NAME = 'components'
 
@@ -28,7 +29,9 @@ def _import_components(path):
         print(f"Imported component {module_name}")
 
 
-def _register_components_with_dependency_container(registry, container: DependencyContainer):
+def _register_components_with_dependency_container(registry: dict[Type[Any],ComponentMetadata],
+                                                   container: DependencyContainer):
+
     for _service_cls, metadata in registry.items():
         key = metadata['key']
 
@@ -55,7 +58,9 @@ def _register_components_with_dependency_container(registry, container: Dependen
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
-def _register_components_with_lifecycle_manager(registry, container: DependencyContainer, manager: LifeCycleManager):
+def _register_components_with_lifecycle_manager(registry: dict[Type[Any],ComponentMetadata],
+                                                container: DependencyContainer,
+                                                manager: LifeCycleManager):
     SERVICE_CLS_INDEX = 0
     METADATA_INDEX = 1
 

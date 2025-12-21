@@ -34,7 +34,7 @@ class VlcProcessManager(LifecycleManagementInterface):
             # Expected when task is cancelled during shutdown
             pass
         except Exception as e:
-            print('Error reading VLC output')
+            print(f'Error reading VLC output: {e}')
         finally:
             if self._process and self._process is None:
                 await self._terminate_process()
@@ -72,11 +72,14 @@ class VlcProcessManager(LifecycleManagementInterface):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
+            # TODO: defined outside of __init__
             self._stdout_reader_task = asyncio.create_task(
                 self._read_output_loop(self._process.stdout)
             )
+
         except FileNotFoundError:
             raise RuntimeError("VLC Executable not found")
+
         except Exception as e:
             raise RuntimeError("Failed to start VLC") from e
 

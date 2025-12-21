@@ -10,8 +10,6 @@ class LifeCycleManager:
 
     def index_singleton(self, singleton: Any):
         if isinstance(singleton, LifecycleManagementInterface):
-            print("--- STACK TRACE FOR INDEXING OMITTED ---")
-            # traceback.print_stack()
             print(f"Indexed {singleton.__class__.__name__} with lifecycle manager")
             self._singletons.append(singleton)
 

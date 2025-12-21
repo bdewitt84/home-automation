@@ -1,15 +1,17 @@
 # app/bootstrap/scanner.py
 
 import importlib
-from typing import Type, Any
+from typing import Type, Any, Callable
 import pkgutil
 
+from interfaces import FactoryInterface
+
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata
+from app.di.registry import ComponentMetadata, METADATA_INDEX
 from app.lifecycle_manager import LifeCycleManager
 
 
-def import_components(path):
+def import_components(path) -> None:
     package = importlib.import_module(path)
     for _finder, name, _is_pkg in pkgutil.walk_packages(package.__path__):
         module_name = package.__name__ + '.' + name
@@ -17,17 +19,30 @@ def import_components(path):
         print(f"Imported component {module_name}")
 
 
-def register_components_with_dependency_container(registry: dict[Type[Any], ComponentMetadata],
-                                                   container: DependencyContainer):
-    for _service_cls, metadata in registry.items():
-        key = metadata['key']
+def _get_factory_name_for_class(cls: type[Any]) -> str:
+    return cls.__name__ + "Factory"
 
-        factory_name = _service_cls.__name__ + 'Factory'
-        factory_package_path = 'app.di.factories'
+
+def _factory_loader(factory_name: str) -> Type[FactoryInterface]:
+    factory_package_path = 'app.di.factories'
+    factory_package = importlib.import_module(factory_package_path)
+    factory_cls = getattr(factory_package, factory_name)
+    return factory_cls
+
+
+def register_components_with_dependency_container(registry: dict[Type[Any], ComponentMetadata],
+                                                  container: DependencyContainer,
+                                                  loader: Callable[[str], Type[FactoryInterface]] = _factory_loader
+                                                  ) -> None:
+
+    for _service_cls, metadata in registry.items():
+
+        key = metadata['key']
+        factory_name = _get_factory_name_for_class(_service_cls)
 
         try:
-            factory_package = importlib.import_module(factory_package_path)
-            factory_cls = getattr(factory_package, factory_name)
+            factory_cls = loader(factory_name)
+            container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
             # Python uses late binding closure to resolve lambda functions, so an statment like
             # labmda: factory_cls(container)
             # will take the values from the outer scope at the time the lambda was called, not
@@ -38,8 +53,7 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
             # every resolution asked of the container would return an instance of the last
             # class in the iteration of this for loop. Using functools.partial is also
             # an acceptable solution.
-            container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
-            print(f"Imported {factory_cls.__name__} from {factory_package.__name__}")
+
 
         except AttributeError:
             print(f"⚠️ Warning: No factory found for {_service_cls.__name__}. Expected {factory_name}.")
@@ -48,24 +62,46 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
-def register_components_with_lifecycle_manager(registry: dict[Type[Any], ComponentMetadata],
-                                                container: DependencyContainer,
-                                                manager: LifeCycleManager):
-    SERVICE_CLS_INDEX = 0
-    METADATA_INDEX = 1
+def _sort_registry_items_by_lifecycle(registry: dict[Type[Any], ComponentMetadata]
+                                      ) -> list[(Type[Any], ComponentMetadata)]:
 
-    sorted_registry_items = sorted(
+    return sorted(
         registry.items(),
         key=lambda item: item[METADATA_INDEX]['lifecycle']
     )
 
-    print(
-        f"Asking lifecycle manager to process registry: {[item[SERVICE_CLS_INDEX].__name__ for item in sorted_registry_items]}")
 
-    for _service_cls, metadata in sorted_registry_items:
-        if metadata['lifecycle'] > 0:
-            key = metadata['key']
-            instance = container.resolve(key)
-            print(f"Asking lifecycle manager to index {instance.__class__.__name__}")
-            manager.index_singleton(instance)
+def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
+                              ) -> dict[Type[Any], ComponentMetadata]:
 
+    lifecycle_components = {
+        _service_cls: metadata
+        for _service_cls, metadata in registry.items()
+        if metadata['lifecycle'] > 0
+    }
+
+    return lifecycle_components
+
+def _sort_lifecycle_components(components: dict[type[Any], ComponentMetadata]
+                               ) -> list[(type[Any], ComponentMetadata)]:
+
+    sorted_lifecycle_components = sorted(
+        components.items(),
+        key=lambda item: item[METADATA_INDEX]['lifecycle']
+    )
+
+    return sorted_lifecycle_components
+
+
+def register_components_with_lifecycle_manager(registry: dict[Type[Any], ComponentMetadata],
+                                               container: DependencyContainer,
+                                               manager: LifeCycleManager
+                                               ) -> None:
+
+    lifecycle_components = _get_lifecycle_components(registry)
+    sorted_lifecycle_components = _sort_lifecycle_components(lifecycle_components)
+
+    for _service_cls, metadata in sorted_lifecycle_components:
+        key = metadata['key']
+        instance = container.resolve(key)
+        manager.index_singleton(instance)

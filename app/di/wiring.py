@@ -30,16 +30,6 @@ from config.settings import settings
 from components.infrastructure.event_bus import ASyncEventBus
 
 
-def create_dependency_container(app: FastAPI) -> None:
-    dependency_container = DependencyContainer()
-    setattr(app.state, CONTAINER_KEY, dependency_container)
-
-
-def create_lifecycle_manager(app: FastAPI) -> None:
-    lifecycle_manager = LifeCycleManager()
-    setattr(app.state, LIFECYCLE_MANAGER_KEY, lifecycle_manager)
-
-
 def get_dependency_container(app: FastAPI) -> DependencyContainer:
     """
     Get dependency container from application state. Container is initialized

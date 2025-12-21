@@ -14,7 +14,7 @@ from app.bootstrap.state import get_dependency_container, get_lifecycle_manager,
 SERVICE_PACKAGE_NAME = 'components'
 
 
-def initialize_application(app: FastAPI) -> None:
+def bootstrap_application(app: FastAPI) -> None:
     """
     Registered the singletons with the dependency container
     :param app: FastAPI application

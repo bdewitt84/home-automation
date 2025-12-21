@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from app.bootstrap.wiring import initialize_application
+from app.bootstrap.wiring import bootstrap_application
 from app.bootstrap.lifecycle import startup_state, shutdown_state
 from app.bootstrap.state import (
     init_dependency_container,
@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
 
     # --- Bootstrap phase ---
     try:
-        initialize_application(app)
+        bootstrap_application(app)
         await startup_state(app)
 
         yield # control back to fastAPI

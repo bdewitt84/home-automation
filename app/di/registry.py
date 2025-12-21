@@ -1,8 +1,10 @@
 # app/di/registry.py
 
 from typing import Dict, Type, Any
-
 from typing_extensions import TypedDict
+
+SERVICE_CLS_INDEX = 0
+METADATA_INDEX = 1
 
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any], Dict[str, Any]] = {}
 
@@ -15,6 +17,7 @@ class Scopes:
 
 class ComponentMetadata(TypedDict):
     key: str
+    scope: Scopes
     lifecycle: int
 
 

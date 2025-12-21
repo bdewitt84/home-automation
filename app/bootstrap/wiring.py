@@ -6,8 +6,10 @@ from fastapi import FastAPI
 from app.bootstrap.scanner import import_components, register_components_with_dependency_container, \
     register_components_with_lifecycle_manager
 from app.di.registry import COMPONENT_METADATA_REGISTRY
-from app.di.wiring import get_dependency_container, get_lifecycle_manager, register_settings, register_event_bus, \
+from app.di.wiring import register_settings, register_event_bus, \
     register_media_controller, register_media_service
+from app.bootstrap.state import get_dependency_container, get_lifecycle_manager, init_dependency_container, \
+    init_lifecycle_manager
 
 SERVICE_PACKAGE_NAME = 'components'
 
@@ -18,9 +20,8 @@ def initialize_application(app: FastAPI) -> None:
     :param app: FastAPI application
     :returns: None
     """
-
-    container = get_dependency_container(app)
-    manager = get_lifecycle_manager(app)
+    container = init_dependency_container(app)
+    manager = init_lifecycle_manager(app)
 
     # --- Register Application Singletons ---
     register_settings(container)

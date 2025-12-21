@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from app.di.wiring import get_lifecycle_manager
+from app.bootstrap.state import get_lifecycle_manager
 
 
 async def startup_state(app: FastAPI) -> None:

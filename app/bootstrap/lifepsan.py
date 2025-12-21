@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from app.bootstrap.wiring import initialize_application
 from app.bootstrap.lifecycle import startup_state, shutdown_state
 from app.bootstrap.state import (
-    create_dependency_container,
-    create_lifecycle_manager,
+    init_dependency_container,
+    init_lifecycle_manager,
 )
 
 
@@ -15,14 +15,12 @@ from app.bootstrap.state import (
 async def lifespan(app: FastAPI):
 
     # --- Bootstrap phase ---
-    create_dependency_container(app)
-    create_lifecycle_manager(app)
-    initialize_application(app)
-    await startup_state(app)
+    try:
+        initialize_application(app)
+        await startup_state(app)
 
-
-    yield # control back to fastAPI
-
+        yield # control back to fastAPI
 
     # -- Shutdown phase ---
-    await shutdown_state(app)
+    finally:
+        await shutdown_state(app)

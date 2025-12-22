@@ -5,10 +5,6 @@ from fastapi import FastAPI
 
 from app.bootstrap.wiring import bootstrap_application
 from app.bootstrap.lifecycle import startup_state, shutdown_state
-from app.bootstrap.state import (
-    init_dependency_container,
-    init_lifecycle_manager,
-)
 
 
 @asynccontextmanager

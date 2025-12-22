@@ -98,10 +98,12 @@ async def test_stop_registered_executes_in_reverse_order():
     singleton_1 = create_autospec(LifecycleManagementInterface, instance=True)
     singleton_2 = create_autospec(LifecycleManagementInterface, instance=True)
 
+    # Attach mock calls to parent so we can track the order
     parent_mock = AsyncMock()
     parent_mock.attach_mock(singleton_1.stop, "singleton_1_stop")
     parent_mock.attach_mock(singleton_2.stop, "singleton_2_stop")
 
+    # Inject singletons to manager state (white box)
     manager._singletons = [singleton_1, singleton_2]
 
     await manager.stop_registered()

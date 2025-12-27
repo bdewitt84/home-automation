@@ -43,11 +43,13 @@ class DependencyContainer:
                 raise ValueError(f"Parameter {keyword} has no annotation")
 
             if arg_type not in self._class_to_key.keys():
-                raise ValueError(f"Class '{keyword}' not registered with container")
+                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{keyword}' of type '{arg_type}' not registered with container")
 
             key = self._class_to_key.get(arg_type)
             instance = self.resolve(key)
             kwargs.update({keyword: instance})
+
+        return cls(**kwargs)
 
 
     def register_singleton_by_inspection(self, key: str, cls: type) -> None:
@@ -57,6 +59,7 @@ class DependencyContainer:
         def auto_factory():
             return self._create_instance_by_auto_injection(cls)
 
+        print(f"Container: Registering {cls.__name__} with key {key}")
         self.register_singleton(key, auto_factory)
 
 

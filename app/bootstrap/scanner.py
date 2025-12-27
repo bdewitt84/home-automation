@@ -50,7 +50,7 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
 
     for _service_cls, metadata in registry.items():
 
-        key = metadata['key']
+        key = metadata.key
         factory_name = _get_factory_name_for_class(_service_cls)
 
         try:
@@ -90,7 +90,7 @@ def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
     lifecycle_components = {
         _service_cls: metadata
         for _service_cls, metadata in registry.items()
-        if metadata['lifecycle'] > 0
+        if metadata.lifecycle > 0
     }
 
     return lifecycle_components
@@ -100,7 +100,7 @@ def _sort_lifecycle_components(components: dict[type[Any], ComponentMetadata]
 
     sorted_lifecycle_components = sorted(
         components.items(),
-        key=lambda item: item[METADATA_INDEX]['lifecycle']
+        key=lambda item: item[METADATA_INDEX].lifecycle
     )
 
     return sorted_lifecycle_components
@@ -115,6 +115,6 @@ def register_components_with_lifecycle_manager(registry: dict[Type[Any], Compone
     sorted_lifecycle_components = _sort_lifecycle_components(lifecycle_components)
 
     for _service_cls, metadata in sorted_lifecycle_components:
-        key = metadata['key']
+        key = metadata.key
         instance = container.resolve(key)
         manager.index_singleton(instance)

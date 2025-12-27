@@ -7,6 +7,7 @@ from types import ModuleType
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata, METADATA_INDEX
 from app.lifecycle_manager import LifeCycleManager
+from interfaces import FactoryInterface
 
 ModuleInfo = Any
 

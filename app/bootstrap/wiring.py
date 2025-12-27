@@ -3,13 +3,28 @@
 
 from fastapi import FastAPI
 
-from app.bootstrap.scanner import import_components, register_components_with_dependency_container, \
-    register_components_with_lifecycle_manager
+import importlib
+import pkgutil
+
+from app.bootstrap.scanner import (
+    scan_registry_decorators,
+    register_components_with_dependency_container,
+    register_components_with_lifecycle_manager,
+)
+
 from app.di.registry import COMPONENT_METADATA_REGISTRY
-from app.di.wiring import register_settings, register_event_bus, \
-    register_media_controller, register_media_service
-from app.bootstrap.state import get_dependency_container, get_lifecycle_manager, init_dependency_container, \
-    init_lifecycle_manager
+
+from app.di.wiring import (
+    register_settings,
+    register_event_bus,
+    register_media_controller,
+    register_media_service,
+)
+
+from app.bootstrap.state import (
+    init_dependency_container,
+    init_lifecycle_manager,
+)
 
 SERVICE_PACKAGE_NAME = 'components'
 
@@ -29,7 +44,9 @@ def bootstrap_application(app: FastAPI) -> None:
 
     # --- Register Subprocess Singletons ---
     # register_vlc_process_manager(container)
-    import_components(SERVICE_PACKAGE_NAME)
+    scan_registry_decorators(path=SERVICE_PACKAGE_NAME,
+                             module_importer=importlib.import_module,
+                             package_walker=pkgutil.walk_packages, )
     register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
     register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
 

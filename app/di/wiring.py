@@ -22,7 +22,7 @@ from app.di.factories import (
     VlcProcessManagerFactory,
 )
 
-from config.settings import settings
+from config.settings import settings, AppSettings
 from components.infrastructure.event_bus import ASyncEventBus
 
 
@@ -68,6 +68,7 @@ def register_settings(container: DependencyContainer) -> None:
         APP_SETTINGS_KEY,
         lambda: settings,
     )
+    container.map_class_to_key(AppSettings, APP_SETTINGS_KEY)
 
 
 def register_media_service(container: DependencyContainer) -> None:

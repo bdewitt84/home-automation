@@ -9,6 +9,7 @@ import pkgutil
 from app.bootstrap.scanner import (
     scan_registry_decorators,
     register_components_with_dependency_container,
+    auto_register_components_with_dependency_container,
     register_components_with_lifecycle_manager,
 )
 
@@ -47,7 +48,8 @@ def bootstrap_application(app: FastAPI) -> None:
     scan_registry_decorators(path=SERVICE_PACKAGE_NAME,
                              module_importer=importlib.import_module,
                              package_walker=pkgutil.walk_packages, )
-    register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    # register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    auto_register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
     register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
 
     # --- Register Component Singletons ---

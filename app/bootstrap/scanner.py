@@ -57,8 +57,8 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
             factory_cls = loader(factory_name)
             container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
             container.map_class_to_key(_service_cls, key)
-            # Python uses late binding closure to resolve lambda functions, so an statment like
-            # labmda: factory_cls(container)
+            # Python uses late binding closure to resolve lambda functions, so a statement like
+            # lambda: factory_cls(container)
             # will take the values from the outer scope at the time the lambda was called, not
             # when it was defined. This means every resolution with this key will use the
             # variables available at the time of the last iteration before it was called.
@@ -70,7 +70,7 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
 
 
         except AttributeError:
-            print(f"⚠️ Warning: No factory found for {_service_cls.__name__}. Expected {factory_name}.")
+            print(f"Warning: No factory found for {_service_cls.__name__}. Expected {factory_name}.")
 
         except Exception as e:
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e

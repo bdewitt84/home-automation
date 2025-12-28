@@ -1,6 +1,6 @@
 # app/di/container.py
 
-from typing import Callable, Any
+from typing import Callable, Any, Type
 from inspect import signature
 
 
@@ -8,9 +8,9 @@ class DependencyContainer:
     def __init__(self):
         self._singletons: dict[str, Any] = {}
         self._factories: dict[str, Callable[[], Any]] = {}
-        self._class_to_key = {}
+        self._type_registry = {}
 
-    def register_singleton(self, key: str, factory: Callable[[], Any]) -> None:
+    def register_factory(self, key: str, factory: Callable[[], Any]) -> None:
         if key in self._factories:
             raise ValueError(f"Dependency '{key}' already registered")
 
@@ -27,41 +27,49 @@ class DependencyContainer:
 
         return self._singletons[key]
 
-    def get_registered_singleton_keys(self) -> list[Any]:
+    def get_registered_component_keys(self) -> list[Any]:
         return list(self._factories.keys())
 
-    def _create_instance_by_auto_injection(self, cls: type) -> Any:
+    def _get_constructor_requirements(self, cls: type) -> dict[str, Type]:
+        sig = signature(cls)
+        requirements = {}
 
-        kwargs = {}
-        params = signature(cls).parameters.items()
-
-        for keyword, param in params:
-
+        for name, param in sig.parameters.items():
             arg_type = param.annotation
 
+            if arg_type is param.empty:
+                raise ValueError(f"Parameter {name} has no annotation")
+
             if arg_type is None:
-                raise ValueError(f"Parameter {keyword} has no annotation")
+                raise ValueError(f"Parameter {name} must not have annotation 'None'")
 
-            if arg_type not in self._class_to_key.keys():
-                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{keyword}' of type '{arg_type}' not registered with container")
+            if arg_type not in self._type_registry:
+                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container")
 
-            key = self._class_to_key.get(arg_type)
-            instance = self.resolve(key)
-            kwargs.update({keyword: instance})
+            requirements[name] = arg_type
 
-        return cls(**kwargs)
+        return requirements
 
+    def _get_resolved_dependencies(self, requirements: dict[str, Type]) -> dict[str, Any]:
 
-    def register_singleton_by_inspection(self, key: str, cls: type) -> None:
+        resolved = {
+            name: self.resolve(self._type_registry[arg_type])
+            for name, arg_type in requirements.items()
+        }
 
-        self._class_to_key.update({cls: key})
+        return resolved
+
+    def register_class(self, key: str, cls: type) -> None:
+        self._type_registry.update({cls: key})
+
+        requirements = self._get_constructor_requirements(cls)
 
         def auto_factory():
-            return self._create_instance_by_auto_injection(cls)
+            dependencies = self._get_resolved_dependencies(requirements)
+            return cls(**dependencies)
 
         print(f"Container: Registering {cls.__name__} with key {key}")
-        self.register_singleton(key, auto_factory)
+        self.register_factory(key, auto_factory)
 
-
-    def map_class_to_key(self, cls: type, key: str) -> None:
-        self._class_to_key[cls] = key
+    def map_type_to_key(self, cls: type, key: str) -> None:
+        self._type_registry[cls] = key

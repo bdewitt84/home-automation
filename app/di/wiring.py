@@ -32,7 +32,7 @@ def register_media_controller(container: DependencyContainer):
     :param container: dependency container
     :returns: None
     """
-    container.register_singleton(
+    container.register_factory(
         MEDIA_CONTROL_KEY,
         lambda: VlcMediaControlFactory(container).create(),
     )
@@ -45,7 +45,7 @@ def register_event_bus(container: DependencyContainer):
     :param container: dependency container
     :returns: None
     """
-    container.register_singleton(
+    container.register_factory(
         EVENT_BUS_KEY,
         lambda: ASyncEventBusFactory(container).create(),
     )
@@ -64,11 +64,11 @@ def register_settings(container: DependencyContainer) -> None:
     :param container: dependency container
     :returns: None
     """
-    container.register_singleton(
+    container.register_factory(
         APP_SETTINGS_KEY,
         lambda: settings,
     )
-    container.map_class_to_key(AppSettings, APP_SETTINGS_KEY)
+    container.map_type_to_key(AppSettings, APP_SETTINGS_KEY)
 
 
 def register_media_service(container: DependencyContainer) -> None:
@@ -77,7 +77,7 @@ def register_media_service(container: DependencyContainer) -> None:
     :param container: dependency container
     :returns: None
     """
-    container.register_singleton(
+    container.register_factory(
         MEDIA_CONTROL_SERVICE_KEY,
         lambda: MediaControlServiceFactory(container).create(),
     )
@@ -89,7 +89,7 @@ def register_vlc_process_manager(container: DependencyContainer) -> None:
     :param container: dependency container
     :returns: None
     """
-    container.register_singleton(
+    container.register_factory(
         VLC_PROCESS_MANAGER_KEY,
         lambda: VlcProcessManagerFactory(container).create(),
     )

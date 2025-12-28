@@ -55,8 +55,8 @@ def register_components_with_dependency_container(registry: dict[Type[Any], Comp
 
         try:
             factory_cls = loader(factory_name)
-            container.register_singleton(key, lambda c=container, f=factory_cls: f(c).create())
-            container.map_class_to_key(_service_cls, key)
+            container.register_factory(key, lambda c=container, f=factory_cls: f(c).create())
+            container.map_type_to_key(_service_cls, key)
             # Python uses late binding closure to resolve lambda functions, so a statement like
             # lambda: factory_cls(container)
             # will take the values from the outer scope at the time the lambda was called, not
@@ -93,11 +93,10 @@ def auto_register_components_with_dependency_container(registry: dict[Type[Any],
         key = metadata.key
 
         try:
-            container.register_singleton_by_inspection(key, _service_cls)
+            container.register_class(key, _service_cls)
 
         except Exception as e:
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
-
 
 
 def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
@@ -110,6 +109,7 @@ def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
     }
 
     return lifecycle_components
+
 
 def _sort_lifecycle_components(components: dict[type[Any], ComponentMetadata]
                                ) -> list[(type[Any], ComponentMetadata)]:

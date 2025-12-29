@@ -9,6 +9,8 @@ from app.di.registry import ComponentMetadata, METADATA_INDEX
 from app.lifecycle_manager import LifeCycleManager
 from interfaces import FactoryInterface
 
+from config.project import FACTORY_PACKAGE_PATH
+
 ModuleInfo = Any
 
 
@@ -36,16 +38,18 @@ def _get_factory_name_for_class(cls: type[Any]) -> str:
     return cls.__name__ + "Factory"
 
 
-def _factory_loader(factory_name: str) -> Type[FactoryInterface]:
-    factory_package_path = 'app.di.factories'
-    factory_package = importlib.import_module(factory_package_path)
-    factory_cls = getattr(factory_package, factory_name)
+def _factory_loader(factory_name: str,
+                    factory_package_path: str=FACTORY_PACKAGE_PATH,
+                    importer: Callable[[str], ModuleType] = importlib.import_module,
+                    ) -> Type[FactoryInterface]:
+    factory_module = importer(factory_package_path)
+    factory_cls = getattr(factory_module, factory_name)
     return factory_cls
 
 
 def register_components_with_dependency_container(registry: dict[Type[Any], ComponentMetadata],
                                                   container: DependencyContainer,
-                                                  loader: Callable[[str], Type[FactoryInterface]] = _factory_loader
+                                                  loader: Callable[[str], Type[FactoryInterface]] = _factory_loader,
                                                   ) -> None:
 
     for _service_cls, metadata in registry.items():

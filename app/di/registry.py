@@ -3,6 +3,7 @@
 from typing import Dict, Type, Any
 from dataclasses import dataclass
 
+from pydantic import BaseModel
 
 SERVICE_CLS_INDEX = 0
 METADATA_INDEX = 1
@@ -19,18 +20,25 @@ class ComponentMetadata:
     key: str
     lifecycle: int
     scope: str = Scopes.SINGLETON
+    settings_cls: Type[BaseModel] | None = None
+    register_at_startup: bool = False
 
 
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any], ComponentMetadata] = {}
 
 
-def register_component_with_container(key:str, lifecycle: int=0):
+def register_component_with_container(key:str=None,
+                                      settings_cls=None,
+                                      register_at_startup=False,
+                                      lifecycle: int=0):
 
     def decorator(cls):
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
-            key=key,
+            key=key or cls.__name__,
             lifecycle=lifecycle,
             scope=Scopes.SINGLETON,
+            settings_cls=settings_cls,
+            register_at_startup=register_at_startup,
         )
         print(f"Registered {cls.__name__} with key {key}")
         return cls

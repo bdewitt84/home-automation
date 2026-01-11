@@ -185,3 +185,47 @@ def test_register_components_with_lifecycle_manager():
 
     call_order = [call(test_instance_a), call(test_instance_b)]
     mock_lifecycle_manager.index_singleton.assert_has_calls(call_order, any_order=False)
+
+
+def test_read_config():
+
+    buffer = io.StringIO("""{
+                        "components": {
+                            "living_room_vlc": {
+                                "type": "VlcMediaController",
+                                "enabled": true,
+                                "config": {
+                                    "URL": "localhost",
+                                    "port": 8080,
+                                    "password": "${VLC_PASS_LOCAL}"
+                                }
+                            },
+                            "kitchen_light_main": {
+                                "type": "BrandALight",
+                                "config": {
+                                    "group": "kitchen"
+                                }
+                            }
+                        }
+                    }"""
+                         )
+
+    result = read_config(buffer)
+
+    assert "components" in result
+    assert result["components"]["living_room_vlc"]["enabled"] == True
+
+
+def test_interpolate_environment_variables():
+
+    config = {
+        "config": {
+        "password": "${SECRET}",
+        }
+    }
+
+    env_var_loader = Mock(return_value="super_secret_password")
+
+    _interpolate_environment_variables(config, env_var_loader)
+
+    assert config["config"]["password"] == "super_secret_password"

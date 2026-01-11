@@ -1,8 +1,11 @@
 # app/bootstrap/scanner.py
 
 import importlib
-from typing import Type, Any, Callable, Iterator
+from typing import Type, Any, Callable, Iterator, IO
 from types import ModuleType
+import os
+import re
+from json import load
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata, METADATA_INDEX
@@ -138,3 +141,38 @@ def register_components_with_lifecycle_manager(registry: dict[Type[Any], Compone
         key = metadata.key
         instance = container.resolve(key)
         manager.index_singleton(instance)
+
+
+def _interpolate_environment_variables(cfg: dict,
+                                       env_loader: Callable[[str], str] = os.getenv,
+                                       ) -> None:
+
+    pattern=r"\${(.*?)}"
+    re.compile(pattern)
+
+    for key, val in cfg.items():
+        if isinstance(val, dict):
+            _interpolate_environment_variables(val, env_loader)
+        elif isinstance(val, str):
+            match = re.search(pattern, val)
+            if match:
+                env_var_name = match.group(1)
+                env_val = env_loader(env_var_name)
+                if env_val is None:
+                    raise ValueError(f"{env_var_name} is not a valid environment variable.")
+                else:
+                    cfg[key] = env_val
+
+
+def read_config(stream: IO[str],
+                decoder: Callable[[IO[str]], dict] = load,
+                parser: Callable[[dict], dict] = dict,
+                ) -> Any:
+
+    try:
+        decoded = decoder(stream)
+        parsed = parser(decoded)
+    except Exception as e:
+        raise RuntimeError(f"Critical failure reading config file: {e}") from e
+
+    return parsed

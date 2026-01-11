@@ -11,6 +11,7 @@ from app.bootstrap.scanner import (
     register_components_with_dependency_container,
     auto_register_components_with_dependency_container,
     register_components_with_lifecycle_manager,
+    register_on_startup_components,
 )
 
 from app.di.registry import COMPONENT_METADATA_REGISTRY
@@ -48,8 +49,11 @@ def bootstrap_application(app: FastAPI) -> None:
     scan_registry_decorators(path=SERVICE_PACKAGE_NAME,
                              module_importer=importlib.import_module,
                              package_walker=pkgutil.walk_packages, )
-    # register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
-    auto_register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    # auto_register_components_with_dependency_container(COMPONENT_METADATA_REGISTRY, container)
+    # register on startup
+    register_on_startup_components(COMPONENT_METADATA_REGISTRY, container)
+    # register dynamic components
+    # register_dynamic_components(user_config, container)
     register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
 
     # --- Register Component Singletons ---

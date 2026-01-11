@@ -106,6 +106,19 @@ def auto_register_components_with_dependency_container(registry: dict[Type[Any],
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
+def register_on_startup_components(registry: dict[Type[Any], ComponentMetadata],
+                                   container: DependencyContainer,
+                                   ) -> None:
+
+    for _component_cls, metadata in registry.items():
+        if metadata.register_at_startup:
+            try:
+                container.register_class(metadata.key, _component_cls)
+
+            except Exception as e:
+                raise RuntimeError(f"Critical wiring failure for {_component_cls.__name__}: {e}") from e
+
+
 def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
                               ) -> dict[Type[Any], ComponentMetadata]:
 

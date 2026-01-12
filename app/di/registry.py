@@ -18,10 +18,11 @@ class Scopes:
 @dataclass
 class ComponentMetadata:
     key: str
-    lifecycle: int
+    type: Type[Any]
     scope: str = Scopes.SINGLETON
     settings_cls: Type[BaseModel] | None = None
     register_at_startup: bool = False
+    lifecycle: int = 0
 
 
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any], ComponentMetadata] = {}
@@ -35,10 +36,11 @@ def register_component_with_container(key:str=None,
     def decorator(cls):
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
             key=key or cls.__name__,
-            lifecycle=lifecycle,
+            type=cls,
             scope=Scopes.SINGLETON,
             settings_cls=settings_cls,
             register_at_startup=register_at_startup,
+            lifecycle=lifecycle,
         )
         print(f"Registered {cls.__name__} with key {key}")
         return cls

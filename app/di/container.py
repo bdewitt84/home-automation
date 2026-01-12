@@ -3,18 +3,27 @@
 from typing import Callable, Any, Type
 from inspect import signature
 
+from app.di.registry import ComponentMetadata
+
 
 class DependencyContainer:
     def __init__(self):
         self._singletons: dict[str, Any] = {}
         self._factories: dict[str, Callable[[], Any]] = {}
-        self._type_registry = {}
+        self._type_registry: dict[Type[Any], str] = {}
+        self._metadata_registry: dict[str, ComponentMetadata] = {}
 
-    def register_factory(self, key: str, factory: Callable[[], Any]) -> None:
+    def register_factory(self,
+                         key: str,
+                         factory: Callable[[], Any],
+                         metadata: ComponentMetadata = None
+                         ) -> None:
+
         if key in self._factories:
             raise ValueError(f"Dependency '{key}' already registered")
 
         self._factories[key] = factory
+        self._metadata_registry[key] = metadata
 
     def resolve(self, key: str) -> Any:
         if key not in self._singletons:
@@ -26,6 +35,11 @@ class DependencyContainer:
             self._singletons[key] = singleton
 
         return self._singletons[key]
+
+    def get_metadata(self, key: str) -> Any:
+        if key not in self._metadata_registry:
+            raise ValueError(f"Metadata for '{key}' not registered")
+        return self._metadata_registry[key]
 
     def get_registered_component_keys(self) -> list[Any]:
         return list(self._factories.keys())
@@ -59,7 +73,12 @@ class DependencyContainer:
 
         return resolved
 
-    def register_class(self, key: str, cls: type) -> None:
+    def register_class(self,
+                       key: str,
+                       cls: Type[Any],
+                       metadata: ComponentMetadata = None
+                       ) -> None:
+
         self._type_registry.update({cls: key})
 
         requirements = self._get_constructor_requirements(cls)
@@ -69,7 +88,24 @@ class DependencyContainer:
             return cls(**dependencies)
 
         print(f"Container: Registering {cls.__name__} with key {key}")
-        self.register_factory(key, auto_factory)
+        self.register_factory(key, auto_factory, metadata)
 
-    def map_type_to_key(self, cls: type, key: str) -> None:
+
+    def register_controller_instance(self,
+                                     key: str,
+                                     cls: Type[Any],
+                                     metadata: ComponentMetadata = None
+                                     ) -> None:
+
+        requirements = self._get_constructor_requirements(cls)
+
+        def auto_factory():
+            dependencies = self._get_resolved_dependencies(requirements)
+            return cls(**dependencies)
+
+        print(f"Container: Registering {cls.__name__} with key {key}")
+        self.register_factory(key, auto_factory, metadata)
+
+
+    def map_type_to_key(self, cls: Type[Any], key: str) -> None:
         self._type_registry[cls] = key

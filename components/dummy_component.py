@@ -3,7 +3,7 @@ from components.infrastructure import AsyncHttpClient
 from interfaces import LifecycleManagementInterface
 
 
-@register_component_with_container(register_at_startup=True, lifecycle=1000)
+@register_component_with_container(register_at_startup=False, lifecycle=1000)
 class DummyComponent(LifecycleManagementInterface):
     def __init__(self, http_client: AsyncHttpClient):
         self.http_client = http_client

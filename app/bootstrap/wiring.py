@@ -10,7 +10,9 @@ from app.bootstrap.scanner import (
     scan_registry_decorators,
     register_components_with_dependency_container,
     auto_register_components_with_dependency_container,
+    register_dynamic_components,
     register_components_with_lifecycle_manager,
+    register_components_with_lfm,
     register_on_startup_components,
 )
 
@@ -39,6 +41,13 @@ def bootstrap_application(app: FastAPI) -> None:
     """
     container = init_dependency_container(app)
     manager = init_lifecycle_manager(app)
+    config_data = {
+        "components": {
+            "test_dummy" : {
+                "type": "DummyComponent",
+            }
+        },
+    }
 
     # --- Register Application Singletons ---
     register_settings(container)
@@ -53,8 +62,9 @@ def bootstrap_application(app: FastAPI) -> None:
     # register on startup
     register_on_startup_components(COMPONENT_METADATA_REGISTRY, container)
     # register dynamic components
-    # register_dynamic_components(user_config, container)
-    register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
+    register_dynamic_components(config_data, container, COMPONENT_METADATA_REGISTRY)
+    # register_components_with_lifecycle_manager(COMPONENT_METADATA_REGISTRY, container, manager)
+    register_components_with_lfm(container, manager)
 
     # --- Register Component Singletons ---
     register_media_controller(container)

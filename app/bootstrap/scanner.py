@@ -189,6 +189,21 @@ def register_components_with_lifecycle_manager(registry: dict[Type[Any], Compone
         manager.index_singleton(instance)
 
 
+def register_components_with_lfm(container: DependencyContainer,
+                                 manager: LifeCycleManager
+                                 ) -> None:
+
+    active_keys = container.get_registered_component_keys()
+
+    for key in active_keys:
+        metadata = container.get_metadata(key)
+        if not metadata:
+            continue
+        if metadata.lifecycle > 0:
+            component = container.resolve(key)
+            manager.index_singleton(component)
+
+
 def _interpolate_environment_variables(cfg: dict,
                                        env_loader: Callable[[str], str] = os.getenv,
                                        ) -> None:

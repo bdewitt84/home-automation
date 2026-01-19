@@ -119,6 +119,39 @@ def register_on_startup_components(registry: dict[Type[Any], ComponentMetadata],
                 raise RuntimeError(f"Critical wiring failure for {_component_cls.__name__}: {e}") from e
 
 
+def get_metadata_by_key(key: str,
+    registry: dict[Type[Any], ComponentMetadata],
+    )-> ComponentMetadata | None:
+
+    for metadata in registry.values():
+        if metadata.key == key:
+            return metadata
+
+    return None
+
+
+def register_dynamic_components(config_data: dict,
+                                container: DependencyContainer,
+                                registry: dict[Type[Any], ComponentMetadata],
+                                ) -> None:
+
+    components_config = config_data.get('components', {})
+
+    for component_name, component_data in components_config.items():
+
+        type_name = component_data['type']
+        metadata = get_metadata_by_key(type_name, registry)
+        if not metadata:
+            print(f"Warning: No metadata found for component type '{type_name}'")
+            continue
+
+        container.register_controller_instance(
+            key=component_name,
+            cls=metadata.type,
+            metadata=metadata
+        )
+
+
 def _get_lifecycle_components(registry: dict[Type[Any], ComponentMetadata]
                               ) -> dict[Type[Any], ComponentMetadata]:
 

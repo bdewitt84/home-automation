@@ -113,7 +113,7 @@ def register_on_startup_components(registry: dict[Type[Any], ComponentMetadata],
     for _component_cls, metadata in registry.items():
         if metadata.register_at_startup:
             try:
-                container.register_class(metadata.key, _component_cls)
+                container.register_class(metadata.key, _component_cls, metadata)
 
             except Exception as e:
                 raise RuntimeError(f"Critical wiring failure for {_component_cls.__name__}: {e}") from e

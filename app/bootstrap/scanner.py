@@ -194,14 +194,16 @@ def register_components_with_lfm(container: DependencyContainer,
                                  ) -> None:
 
     active_keys = container.get_registered_component_keys()
+    lifecycle_keys = [
+        (key, container.get_metadata(key).lifecycle)
+        for key in active_keys
+        if container.get_metadata(key) and container.get_metadata(key).lifecycle > 0
+    ]
+    sorted_lifecycle_keys = sorted(lifecycle_keys, key=lambda item: item[1])
 
-    for key in active_keys:
-        metadata = container.get_metadata(key)
-        if not metadata:
-            continue
-        if metadata.lifecycle > 0:
-            component = container.resolve(key)
-            manager.index_singleton(component)
+    for key, lifecycle in sorted_lifecycle_keys:
+        component = container.resolve(key)
+        manager.index_singleton(component)
 
 
 def _interpolate_environment_variables(cfg: dict,

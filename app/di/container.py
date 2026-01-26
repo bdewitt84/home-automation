@@ -94,17 +94,23 @@ class DependencyContainer:
     def register_controller_instance(self,
                                      key: str,
                                      cls: Type[Any],
-                                     metadata: ComponentMetadata = None
+                                     metadata: ComponentMetadata,
+                                     overrides: dict[str, Any] = {}
                                      ) -> None:
 
         requirements = self._get_constructor_requirements(cls)
 
-        def auto_factory():
-            dependencies = self._get_resolved_dependencies(requirements)
-            return cls(**dependencies)
+        def factory():
+            needed_from_container = {
+                name: type_
+                for name, type_ in requirements.items()
+                if name not in overrides
+            }
+            dependencies = self._get_resolved_dependencies(needed_from_container)
+            return cls(**dependencies, **overrides)
 
-        print(f"Container: Registering {cls.__name__} with key {key}")
-        self.register_factory(key, auto_factory, metadata)
+        print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides}")
+        self.register_factory(key, factory, metadata)
 
 
     def map_type_to_key(self, cls: Type[Any], key: str) -> None:

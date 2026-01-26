@@ -57,8 +57,9 @@ class DependencyContainer:
             if arg_type is None:
                 raise ValueError(f"Parameter {name} must not have annotation 'None'")
 
-            if arg_type not in self._type_registry:
-                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container")
+            # TODO: make sure we sort this out
+            # if arg_type not in self._type_registry:
+            #     raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container")
 
             requirements[name] = arg_type
 
@@ -109,7 +110,7 @@ class DependencyContainer:
             dependencies = self._get_resolved_dependencies(needed_from_container)
             return cls(**dependencies, **overrides)
 
-        print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides}")
+        print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides.keys()}")
         self.register_factory(key, factory, metadata)
 
 

@@ -145,10 +145,14 @@ def register_dynamic_components(config_data: dict,
             print(f"Warning: No metadata found for component type '{type_name}'")
             continue
 
+        settings = component_data.get('settings', {})
+        overrides = {'settings': settings}
+
         container.register_controller_instance(
             key=component_name,
             cls=metadata.type,
-            metadata=metadata
+            metadata=metadata,
+            overrides=overrides,
         )
 
 

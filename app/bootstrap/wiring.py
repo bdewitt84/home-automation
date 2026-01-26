@@ -45,7 +45,11 @@ def bootstrap_application(app: FastAPI) -> None:
         "components": {
             "test_dummy" : {
                 "type": "DummyComponent",
-            }
+                "settings": {
+                    "mock_setting_a" : 0,
+                    "mock_setting_b" : 1,
+                },
+            },
         },
     }
 

@@ -236,7 +236,7 @@ def _interpolate_environment_variables(cfg: dict,
 def read_config(stream: IO[str],
                 decoder: Callable[[IO[str]], dict] = load,
                 parser: Callable[[dict], dict] = dict,
-                ) -> Any:
+                ) -> dict:
 
     try:
         decoded = decoder(stream)
@@ -245,3 +245,17 @@ def read_config(stream: IO[str],
         raise RuntimeError(f"Critical failure reading config file: {e}") from e
 
     return parsed
+
+
+def load_config_from_disk(path: str,
+                          reader: Callable[[str, str], IO[str]] = open
+                          ) -> dict:
+
+    try:
+        with reader(path, 'r') as f:
+            config_data = read_config(f)
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Config file not found: {path}")
+
+    return config_data

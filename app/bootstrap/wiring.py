@@ -14,6 +14,7 @@ from app.bootstrap.scanner import (
     register_components_with_lifecycle_manager,
     register_components_with_lfm,
     register_on_startup_components,
+    load_config_from_disk,
 )
 
 from app.di.registry import COMPONENT_METADATA_REGISTRY
@@ -41,17 +42,8 @@ def bootstrap_application(app: FastAPI) -> None:
     """
     container = init_dependency_container(app)
     manager = init_lifecycle_manager(app)
-    config_data = {
-        "components": {
-            "test_dummy" : {
-                "type": "DummyComponent",
-                "settings": {
-                    "mock_setting_a" : 0,
-                    "mock_setting_b" : 1,
-                },
-            },
-        },
-    }
+
+    config_data = load_config_from_disk('./config/config.json')
 
     # --- Register Application Singletons ---
     register_settings(container)

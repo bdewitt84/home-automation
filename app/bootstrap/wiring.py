@@ -29,6 +29,7 @@ from app.bootstrap.state import (
 )
 
 SERVICE_PACKAGE_NAME = 'components'
+CONFIG_FILE_PATH = './config/config.json'
 
 
 def bootstrap_application(app: FastAPI) -> None:
@@ -40,7 +41,7 @@ def bootstrap_application(app: FastAPI) -> None:
     container = init_dependency_container(app)
     manager = init_lifecycle_manager(app)
 
-    config_data = load_config_from_disk('./config/config.json')
+    config_data = load_config_from_disk(CONFIG_FILE_PATH)
 
     # --- Register Application Singletons ---
     register_settings(container)

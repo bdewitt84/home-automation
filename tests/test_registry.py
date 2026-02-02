@@ -2,7 +2,7 @@
 from unittest.mock import Mock
 
 import app.di.registry
-from app.di.registry import register_component_with_container, ComponentMetadata, COMPONENT_METADATA_REGISTRY, clear_registry
+from app.di.registry import component, ComponentMetadata, COMPONENT_METADATA_REGISTRY, clear_registry
 
 
 def test_clear_registry():
@@ -26,7 +26,7 @@ def test_register_component_with_container():
     test_key = 'test_key'
     test_lifecycle = 100
 
-    @register_component_with_container(test_key, test_lifecycle)
+    @component(test_key, test_lifecycle)
     class TestComponent:
         pass
 

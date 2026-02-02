@@ -6,11 +6,11 @@ from asyncio import StreamReader, create_subprocess_exec, subprocess
 
 from config.settings import AppSettings
 from interfaces import LifecycleManagementInterface
-from app.di.registry import register_component_with_container
+from app.di.registry import component
 from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
-@register_component_with_container(register_at_startup=True, lifecycle=100)
+@component(register_at_startup=True, lifecycle=100)
 class VlcProcessManager(LifecycleManagementInterface):
 
     def __init__(self, settings: AppSettings) -> None:

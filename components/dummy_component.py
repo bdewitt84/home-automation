@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.di.registry import register_component_with_container
+from app.di.registry import component
 from components.infrastructure import AsyncHttpClient
 from interfaces import LifecycleManagementInterface
 
@@ -10,9 +10,9 @@ class DummyComponentSettings(BaseModel):
     mock_setting_b: int
 
 
-@register_component_with_container(register_at_startup=False,
-                                   lifecycle=1000,
-                                   settings_cls=DummyComponentSettings)
+@component(register_at_startup=False,
+           lifecycle=1000,
+           settings_cls=DummyComponentSettings)
 
 class DummyComponent(LifecycleManagementInterface):
     def __init__(self, http_client: AsyncHttpClient, settings: DummyComponentSettings):

@@ -4,11 +4,11 @@ import httpx
 from typing import Optional, Type
 
 from app.di.keys import ASYNC_HTTP_CLIENT_KEY
-from app.di.registry import register_component_with_container
+from app.di.registry import component
 from interfaces import LifecycleManagementInterface
 
 
-@register_component_with_container(register_at_startup=True, lifecycle=100)
+@component(register_at_startup=True, lifecycle=100)
 class AsyncHttpClient(LifecycleManagementInterface):
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None

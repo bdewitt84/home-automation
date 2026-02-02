@@ -28,10 +28,11 @@ class ComponentMetadata:
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any], ComponentMetadata] = {}
 
 
-def register_component_with_container(key:str=None,
-                                      settings_cls=None,
-                                      register_at_startup=False,
-                                      lifecycle: int=0):
+def component(key:str=None,
+              settings_cls=None,
+              register_at_startup=False,
+              lifecycle: int=0
+              ) -> Any:
 
     def decorator(cls):
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(

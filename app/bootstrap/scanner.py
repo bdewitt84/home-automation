@@ -1,6 +1,7 @@
 # app/bootstrap/scanner.py
 
 import importlib
+import pkgutil
 from typing import Type, Any, Callable, Iterator, IO
 from types import ModuleType
 import os
@@ -18,8 +19,8 @@ ModuleInfo = Any
 
 
 def scan_for_components(path: str,
-                        module_importer: Type[Callable[[str], ModuleType]],
-                        package_walker: Type[Callable[[str], Iterator[ModuleInfo]]]
+                        module_importer: Type[Callable[[str], ModuleType]] = importlib.import_module,
+                        package_walker: Type[Callable[[str], Iterator[ModuleInfo]]] = pkgutil.walk_packages
                         ) -> None:
     """
     Imports all modules at package root 'path', forcing the registration

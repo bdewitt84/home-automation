@@ -17,10 +17,10 @@ from config.project import FACTORY_PACKAGE_PATH
 ModuleInfo = Any
 
 
-def scan_registry_decorators(path: str,
-                             module_importer: Type[Callable[[str], ModuleType]],
-                             package_walker: Type[Callable[[str], Iterator[ModuleInfo]]]
-                             ) -> None:
+def scan_for_components(path: str,
+                        module_importer: Type[Callable[[str], ModuleType]],
+                        package_walker: Type[Callable[[str], Iterator[ModuleInfo]]]
+                        ) -> None:
     """
     Imports all modules at package root 'path', forcing the registration
     decorators to populate the registry with application components and
@@ -106,7 +106,7 @@ def auto_register_components_with_dependency_container(registry: dict[Type[Any],
             raise RuntimeError(f"Critical wiring failure for {_service_cls.__name__}: {e}") from e
 
 
-def register_on_startup_components(registry: dict[Type[Any], ComponentMetadata],
+def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
                                    container: DependencyContainer,
                                    ) -> None:
 
@@ -130,10 +130,10 @@ def get_metadata_by_key(key: str,
     return None
 
 
-def register_dynamic_components(config_data: dict,
-                                container: DependencyContainer,
-                                registry: dict[Type[Any], ComponentMetadata],
-                                ) -> None:
+def wire_user_components(config_data: dict,
+                         container: DependencyContainer,
+                         registry: dict[Type[Any], ComponentMetadata],
+                         ) -> None:
 
     components_config = config_data.get('components', {})
 
@@ -195,9 +195,9 @@ def register_components_with_lifecycle_manager(registry: dict[Type[Any], Compone
         manager.index_singleton(instance)
 
 
-def register_components_with_lfm(container: DependencyContainer,
-                                 manager: LifeCycleManager
-                                 ) -> None:
+def wire_lifecycle_management(container: DependencyContainer,
+                              manager: LifeCycleManager
+                              ) -> None:
 
     active_keys = container.get_registered_component_keys()
     lifecycle_keys = [

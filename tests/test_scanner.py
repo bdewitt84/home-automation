@@ -10,7 +10,7 @@ from inspect import signature
 from types import ModuleType
 
 from app.bootstrap.scanner import (
-    scan_registry_decorators,
+    scan_for_components,
     _get_factory_name_for_class,
     _factory_loader,
     register_components_with_dependency_container,
@@ -43,9 +43,9 @@ def test_scan_registry_decorators():
         (False, mock_module_2_name, False),
     ]
 
-    scan_registry_decorators(mock_package_name,
-                             mock_module_importer,
-                             mock_package_walker, )
+    scan_for_components(mock_package_name,
+                        mock_module_importer,
+                        mock_package_walker, )
 
     mock_module_importer.assert_any_call(f"{mock_package_name}.{mock_module_1_name}")
     mock_module_importer.assert_any_call(f"{mock_package_name}.{mock_module_2_name}")

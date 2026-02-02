@@ -7,10 +7,10 @@ import importlib
 import pkgutil
 
 from app.bootstrap.scanner import (
-    scan_registry_decorators,
-    register_dynamic_components,
-    register_components_with_lfm,
-    register_on_startup_components,
+    scan_for_components,
+    wire_user_components,
+    wire_lifecycle_management,
+    wire_infrastructure_components,
     load_config_from_disk,
 )
 
@@ -28,6 +28,7 @@ from app.bootstrap.state import (
     init_lifecycle_manager,
 )
 
+#todo: place these in app settings?
 SERVICE_PACKAGE_NAME = 'components'
 CONFIG_FILE_PATH = './config/config.json'
 
@@ -47,14 +48,21 @@ def bootstrap_application(app: FastAPI) -> None:
     register_settings(container)
     register_event_bus(container)
 
-    # --- Register Subprocess Singletons ---
-    scan_registry_decorators(path=SERVICE_PACKAGE_NAME,
-                             module_importer=importlib.import_module,
-                             package_walker=pkgutil.walk_packages, )
+    # --- Register Components ---
+    scan_for_components(path=SERVICE_PACKAGE_NAME,
+                        module_importer=importlib.import_module,
+                        package_walker=pkgutil.walk_packages, )
 
-    register_on_startup_components(COMPONENT_METADATA_REGISTRY, container)
-    register_dynamic_components(config_data, container, COMPONENT_METADATA_REGISTRY)
-    register_components_with_lfm(container, manager)
+    wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
+                                   container=container)
+
+    # Register components from config.json
+    wire_user_components(config_data=config_data,
+                         container=container,
+                         registry=COMPONENT_METADATA_REGISTRY)
+
+    wire_lifecycle_management(container=container,
+                              manager=manager)
 
     # --- Register Component Singletons ---
     register_media_controller(container)

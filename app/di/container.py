@@ -1,6 +1,6 @@
 # app/di/container.py
 
-from typing import Callable, Any, Type
+from typing import Callable, Any, Type, Optional
 from inspect import signature
 
 from app.di.registry import ComponentMetadata
@@ -96,8 +96,11 @@ class DependencyContainer:
                                      key: str,
                                      cls: Type[Any],
                                      metadata: ComponentMetadata,
-                                     overrides: dict[str, Any] = {}
+                                     overrides: Optional[dict[str, Any]] = None
                                      ) -> None:
+
+        if overrides is None:
+            overrides = {}
 
         requirements = self._get_constructor_requirements(cls)
 

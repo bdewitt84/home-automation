@@ -2,10 +2,12 @@ import asyncio
 from typing import Callable, Type, Any
 from events.base import BaseEvent
 from interfaces import LifecycleManagementInterface
+from app.di.registry import component
 
 
 EventHandler = Callable[[BaseEvent], Any]
 
+@component(is_dependency=True)
 class ASyncEventBus(LifecycleManagementInterface):
     def __init__(self):
         self._subscribers: dict[Type[BaseEvent], list[EventHandler]] = {}

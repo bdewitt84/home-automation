@@ -46,7 +46,7 @@ def bootstrap_application(app: FastAPI) -> None:
 
     # --- Register Application Singletons ---
     register_settings(container)
-    register_event_bus(container)
+    # register_event_bus(container)
 
     # --- Register Components ---
     scan_for_components(path=SERVICE_PACKAGE_NAME,

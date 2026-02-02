@@ -10,7 +10,7 @@ class DummyComponentSettings(BaseModel):
     mock_setting_b: int
 
 
-@component(register_at_startup=False,
+@component(is_dependency=False,
            lifecycle=1000,
            settings_cls=DummyComponentSettings)
 

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
+
 SERVICE_CLS_INDEX = 0
 METADATA_INDEX = 1
 
@@ -21,7 +22,7 @@ class ComponentMetadata:
     type: Type[Any]
     scope: str = Scopes.SINGLETON
     settings_cls: Type[BaseModel] | None = None
-    register_at_startup: bool = False
+    is_dependency: bool = False
     lifecycle: int = 0
 
 
@@ -30,7 +31,7 @@ COMPONENT_METADATA_REGISTRY: Dict[Type[Any], ComponentMetadata] = {}
 
 def component(key:str=None,
               settings_cls=None,
-              register_at_startup=False,
+              is_dependency=False,
               lifecycle: int=0
               ) -> Any:
 
@@ -40,7 +41,7 @@ def component(key:str=None,
             type=cls,
             scope=Scopes.SINGLETON,
             settings_cls=settings_cls,
-            register_at_startup=register_at_startup,
+            is_dependency=is_dependency,
             lifecycle=lifecycle,
         )
         print(f"Registered {cls.__name__} with key {key}")

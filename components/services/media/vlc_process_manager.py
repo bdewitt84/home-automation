@@ -10,7 +10,7 @@ from app.di.registry import component
 from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
-@component(register_at_startup=True, lifecycle=100)
+@component(is_dependency=True, lifecycle=100)
 class VlcProcessManager(LifecycleManagementInterface):
 
     def __init__(self, settings: AppSettings) -> None:

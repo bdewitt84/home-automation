@@ -8,7 +8,7 @@ from app.di.registry import component
 from interfaces import LifecycleManagementInterface
 
 
-@component(register_at_startup=True, lifecycle=100)
+@component(is_dependency=True, lifecycle=100)
 class AsyncHttpClient(LifecycleManagementInterface):
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None

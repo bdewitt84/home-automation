@@ -111,7 +111,7 @@ def register_on_startup_components(registry: dict[Type[Any], ComponentMetadata],
                                    ) -> None:
 
     for _component_cls, metadata in registry.items():
-        if metadata.register_at_startup:
+        if metadata.is_dependency:
             try:
                 container.register_class(metadata.key, _component_cls, metadata)
 

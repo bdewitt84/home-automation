@@ -3,8 +3,27 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from app.bootstrap.wiring import bootstrap_application
+from app.bootstrap.scanner import (
+    load_config_from_disk,
+    scan_for_components,
+    wire_infrastructure_components,
+    wire_user_components,
+    wire_lifecycle_management,
+)
+
+from app.bootstrap.state import (
+    init_dependency_container,
+    init_lifecycle_manager,
+)
+
 from app.bootstrap.lifecycle import startup_state, shutdown_state
+from app.di.registry import COMPONENT_METADATA_REGISTRY
+from app.di.wiring import register_settings
+
+
+#todo: place these in app settings?
+SERVICE_PACKAGE_NAME = 'components'
+CONFIG_FILE_PATH = './config/config.json'
 
 
 @asynccontextmanager
@@ -12,7 +31,27 @@ async def lifespan(app: FastAPI):
 
     # --- Bootstrap phase ---
     try:
-        bootstrap_application(app)
+        # --- Init Core ---
+        container = init_dependency_container(app)
+        manager = init_lifecycle_manager(app)
+
+        # --- Load Config ---
+        register_settings(container)
+        config_data = load_config_from_disk(CONFIG_FILE_PATH)
+
+        # --- Scan and Wire Components ---
+        scan_for_components(path=SERVICE_PACKAGE_NAME)
+
+        wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
+                                       container=container)
+
+        wire_user_components(config_data=config_data,
+                             container=container,
+                             registry=COMPONENT_METADATA_REGISTRY)
+
+        wire_lifecycle_management(container=container,
+                                  manager=manager)
+
         await startup_state(app)
 
         yield # control back to fastAPI

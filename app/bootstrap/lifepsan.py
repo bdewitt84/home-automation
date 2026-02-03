@@ -4,12 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.bootstrap.scanner import (
-    load_config_from_disk,
     scan_for_components,
     wire_infrastructure_components,
     wire_user_components,
     wire_lifecycle_management,
 )
+from app.bootstrap.config import load_config_from_disk
 
 from app.bootstrap.state import (
     init_dependency_container,

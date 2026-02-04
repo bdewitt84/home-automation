@@ -3,21 +3,29 @@
 from typing import Optional
 import asyncio
 from asyncio import StreamReader, create_subprocess_exec, subprocess
+from pydantic import BaseModel
 
-from config.settings import AppSettings
 from interfaces import LifecycleManagementInterface
 from app.di.registry import component
-from app.di.keys import VLC_PROCESS_MANAGER_KEY
 
 
-@component(is_dependency=True, lifecycle=100)
+class VlcProcessManagerSettings(BaseModel):
+    host: str='127.0.0.1'
+    port: str='8080'
+    password: str='your_password'
+
+
+@component(is_dependency=False,
+           lifecycle=100,
+           settings_cls=VlcProcessManagerSettings)
+
 class VlcProcessManager(LifecycleManagementInterface):
 
-    def __init__(self, settings: AppSettings) -> None:
+    def __init__(self, settings: VlcProcessManagerSettings) -> None:
 
-        self.host = settings.vlc.HOST
-        self.port = settings.vlc.PORT
-        self.password = settings.vlc.PASSWORD
+        self.host = settings.host
+        self.port = settings.port
+        self.password = settings.password
         self._process: Optional[asyncio.subprocess.Process] = None
 
 

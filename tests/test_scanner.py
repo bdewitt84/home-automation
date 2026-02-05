@@ -120,7 +120,7 @@ def test_auto_register_components_with_dependency_container():
     auto_register_components_with_dependency_container(mock_registry,
                                                        mock_container)
 
-    mock_container.register_class.assert_called_once_with(mock_key, TestComponent1)
+    mock_container.register_as_dependency.assert_called_once_with(mock_key, TestComponent1)
 
 
 def test_get_lifecycle_components():

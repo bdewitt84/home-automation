@@ -74,36 +74,22 @@ class DependencyContainer:
 
         return resolved
 
-    def register_class(self,
-                       key: str,
-                       cls: Type[Any],
-                       metadata: ComponentMetadata = None
-                       ) -> None:
+    def _register_component(self,
+                            key: str,
+                            cls: Type[Any],
+                            metadata: ComponentMetadata = None,
+                            is_dependency: bool = False,
+                            overrides: Optional[dict[str, Any]] = None
+                            ) -> None:
 
-        self._type_registry.update({cls: key})
-
-        requirements = self._get_constructor_requirements(cls)
-
-        def auto_factory():
-            dependencies = self._get_resolved_dependencies(requirements)
-            return cls(**dependencies)
-
-        print(f"Container: Registering {cls.__name__} with key {key}")
-        self.register_factory(key, auto_factory, metadata)
-
-
-    def register_controller_instance(self,
-                                     key: str,
-                                     cls: Type[Any],
-                                     metadata: ComponentMetadata,
-                                     overrides: Optional[dict[str, Any]] = None
-                                     ) -> None:
+        if is_dependency:
+            self._type_registry.update({cls: key})
 
         if overrides is None:
             overrides = {}
 
         requirements = self._get_constructor_requirements(cls)
-
+        
         def factory():
             needed_from_container = {
                 name: type_
@@ -112,9 +98,28 @@ class DependencyContainer:
             }
             dependencies = self._get_resolved_dependencies(needed_from_container)
             return cls(**dependencies, **overrides)
-
+        
         print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides.keys()}")
         self.register_factory(key, factory, metadata)
+            
+
+    def register_as_dependency(self,
+                               key: str,
+                               cls: Type[Any],
+                               metadata: ComponentMetadata = None
+                               ) -> None:
+
+        self._register_component(key, cls, metadata, is_dependency=True)
+
+
+    def register_named_component(self,
+                                 key: str,
+                                 cls: Type[Any],
+                                 metadata: ComponentMetadata,
+                                 overrides: Optional[dict[str, Any]] = None
+                                 ) -> None:
+
+        self._register_component(key, cls, metadata, is_dependency=False, overrides=overrides)
 
 
     def map_type_to_key(self, cls: Type[Any], key: str) -> None:

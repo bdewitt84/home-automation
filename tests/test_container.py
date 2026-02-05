@@ -55,9 +55,9 @@ def test_resolve_recursive():
     branch_key = 'branch_key'
     root_key = 'root_key'
 
-    container.register_class(leaf_key, MockLeaf)
-    container.register_class(branch_key, MockBranch)
-    container.register_class(root_key, MockRoot)
+    container.register_as_dependency(leaf_key, MockLeaf)
+    container.register_as_dependency(branch_key, MockBranch)
+    container.register_as_dependency(root_key, MockRoot)
 
     result = container.resolve(root_key)
 
@@ -169,7 +169,7 @@ def test_register_class():
     mock_key = 'mock_key'
     class MockCls: pass
 
-    container.register_class(mock_key, MockCls)
+    container.register_as_dependency(mock_key, MockCls)
     result = container.resolve(mock_key)
 
     assert isinstance(result, MockCls)

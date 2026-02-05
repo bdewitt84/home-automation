@@ -14,7 +14,7 @@ def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
     for _component_cls, metadata in registry.items():
         if metadata.is_dependency:
             try:
-                container.register_class(metadata.key, _component_cls, metadata)
+                container.register_as_dependency(metadata.key, _component_cls, metadata)
 
             except Exception as e:
                 raise RuntimeError(f"Critical wiring failure for {_component_cls.__name__}: {e}") from e
@@ -51,7 +51,7 @@ def wire_user_components(config_data: dict,
         settings_instance = settings_cls(**settings_data)
         overrides = {'settings': settings_instance}
 
-        container.register_controller_instance(
+        container.register_named_component(
             key=component_name,
             cls=metadata.type,
             metadata=metadata,

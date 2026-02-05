@@ -44,9 +44,13 @@ class DependencyContainer:
     def get_registered_component_keys(self) -> list[Any]:
         return list(self._factories.keys())
 
-    def _get_constructor_requirements(self, cls: type) -> dict[str, Type]:
+    def _get_constructor_requirements(self,
+                                      cls: Type[Any],
+                                      overrides: Optional[dict[str, Any]] = None,
+                                      ) -> dict[str, Type]:
         sig = signature(cls)
         requirements = {}
+        if not overrides: overrides = {}
 
         for name, param in sig.parameters.items():
             arg_type = param.annotation
@@ -57,9 +61,8 @@ class DependencyContainer:
             if arg_type is None:
                 raise ValueError(f"Parameter {name} must not have annotation 'None'")
 
-            # TODO: make sure we sort this out
-            # if arg_type not in self._type_registry:
-            #     raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container")
+            if arg_type not in self._type_registry and name not in overrides:
+                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container and not found in overrides")
 
             requirements[name] = arg_type
 
@@ -85,10 +88,9 @@ class DependencyContainer:
         if is_dependency:
             self._type_registry.update({cls: key})
 
-        if overrides is None:
-            overrides = {}
+        overrides = overrides or {}
 
-        requirements = self._get_constructor_requirements(cls)
+        requirements = self._get_constructor_requirements(cls, overrides)
         
         def factory():
             needed_from_container = {

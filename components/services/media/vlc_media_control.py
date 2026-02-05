@@ -1,16 +1,25 @@
 # components/services/media/vlc_media_control.py
+from pydantic import BaseModel
 
+from app.di.registry import component
 from interfaces.media_control_interface import MediaControlInterface, MediaControlStatus
 from components.infrastructure import AsyncHttpClient
 from xml.etree import ElementTree as ET
 import httpx
 
 
+class VlcMediaControlSettings(BaseModel):
+    vlc_http_server_url: str='http://127.0.0.1:8080'
+    password: str=''
+
+
+@component(is_dependency=False,
+           settings_cls=VlcMediaControlSettings)
 class VLCMediaControl(MediaControlInterface):
 
-    def __init__(self, client: AsyncHttpClient, vlc_http_server_url: str, password: str=''):
-        self.vlc_http_server_url = vlc_http_server_url
-        self.auth = ('', password)
+    def __init__(self, client: AsyncHttpClient, settings: VlcMediaControlSettings):
+        self.vlc_http_server_url = settings.vlc_http_server_url
+        self.auth = ('', settings.password)
         self.client = client
 
     def _construct_request_url(self) -> str:

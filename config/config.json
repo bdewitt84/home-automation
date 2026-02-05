@@ -16,7 +16,7 @@
       }
     },
     "vlc_media_controller" : {
-      "type": "VLCMediaControl",
+      "type": "VlcMediaController",
       "settings": {
           "vlc_http_server_url": "http://127.0.0.1:8080",
           "password": ""

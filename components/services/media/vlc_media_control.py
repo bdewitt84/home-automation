@@ -15,7 +15,7 @@ class VlcMediaControlSettings(BaseModel):
 
 @component(is_dependency=False,
            settings_cls=VlcMediaControlSettings)
-class VLCMediaControl(MediaControlInterface):
+class VlcMediaController(MediaControlInterface):
 
     def __init__(self, client: AsyncHttpClient, settings: VlcMediaControlSettings):
         self.vlc_http_server_url = settings.vlc_http_server_url

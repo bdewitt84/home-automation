@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-from components.services.media.vlc_media_control import VLCMediaControl
+from components.services.media.vlc_media_control import VlcMediaController
 from interfaces.media_control_interface import MediaControlStatus
 
 
@@ -48,7 +48,7 @@ def test_play_success():
         'state': 'playing'
     }
     response = create_mock_response(return_status)
-    vlc_media_control = VLCMediaControl(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
+    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
     expected_params = {'command': 'pl_play'}
 
     # Act
@@ -62,7 +62,7 @@ def test_play_success():
 def test_stop_success():
     return_status = { 'state': 'stopped' }
     response = create_mock_response(return_status)
-    vlc_media_control = VLCMediaControl(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
+    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
     expected_params = { 'command': 'pl_stop' }
 
     # Act
@@ -82,7 +82,7 @@ def test_enqueue_success():
         'command': 'in_enqueue',
         'input': mock_path
     }
-    vlc_media_control = VLCMediaControl(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
+    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
 
     with patch('requests.get', return_value=response) as mock_get:
         result = vlc_media_control.enqueue(mock_path)

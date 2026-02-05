@@ -36,15 +36,18 @@ def component(key:str=None,
               ) -> Any:
 
     def decorator(cls):
+
+        effective_key = key if key else cls.__name__
+
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
-            key=key or cls.__name__,
+            key=effective_key,
             type=cls,
             scope=Scopes.SINGLETON,
             settings_cls=settings_cls,
             is_dependency=is_dependency,
             lifecycle=lifecycle,
         )
-        print(f"Registered {cls.__name__} with key {key}")
+        print(f"Registered {cls.__name__} with key {effective_key}")
         return cls
 
     return decorator

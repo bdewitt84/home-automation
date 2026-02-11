@@ -41,6 +41,9 @@ class DependencyContainer:
             raise ValueError(f"Metadata for '{key}' not registered")
         return self._metadata_registry[key]
 
+    def get_all_registered_metadata(self) -> dict[str, ComponentMetadata]:
+        return self._metadata_registry
+
     def get_registered_component_keys(self) -> list[Any]:
         return list(self._factories.keys())
 
@@ -103,7 +106,6 @@ class DependencyContainer:
         
         print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides.keys()}")
         self.register_factory(key, factory, metadata)
-            
 
     def register_as_dependency(self,
                                key: str,
@@ -113,7 +115,6 @@ class DependencyContainer:
 
         self._register_component(key, cls, metadata, is_dependency=True)
 
-
     def register_named_component(self,
                                  key: str,
                                  cls: Type[Any],
@@ -122,7 +123,6 @@ class DependencyContainer:
                                  ) -> None:
 
         self._register_component(key, cls, metadata, is_dependency=False, overrides=overrides)
-
 
     def map_type_to_key(self, cls: Type[Any], key: str) -> None:
         self._type_registry[cls] = key

@@ -21,3 +21,7 @@ def _get_dependency(key: str, container: DependencyContainer) -> any:
 def get_media_control_service(request: Request):
     container = getattr(request.app.state, CONTAINER_KEY)
     return _get_dependency(MEDIA_CONTROL_SERVICE_KEY, container)
+
+
+def get_container(request: Request):
+    return getattr(request.app.state, CONTAINER_KEY)

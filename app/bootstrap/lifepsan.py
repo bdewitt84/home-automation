@@ -19,7 +19,7 @@ from app.bootstrap.state import (
 )
 
 from app.bootstrap.lifecycle import startup_state, shutdown_state
-from app.di.registry import COMPONENT_METADATA_REGISTRY
+from app.di.registry import COMPONENT_METADATA_REGISTRY, ComponentMetadata
 from app.di.wiring import register_settings
 
 
@@ -34,12 +34,21 @@ async def lifespan(app: FastAPI):
     # --- Bootstrap phase ---
     try:
         # --- Init Core ---
-        container = init_dependency_container(app)
-        manager = init_lifecycle_manager(app)
+        container = init_dependency_container(app=app)
+        container.register_factory(key=container.__class__.__name__,
+                                   factory=lambda: container,
+                                   metadata=ComponentMetadata(key=container.__class__.__name__,
+                                                              type=container.__class__
+                                                              )
+                                   )
+        container.map_type_to_key(cls=container.__class__,
+                                  key=container.__class__.__name__,
+                                  )
+        manager = init_lifecycle_manager(app=app)
 
         # --- Load Config ---
-        register_settings(container)
-        config_data = load_config_from_disk(CONFIG_FILE_PATH)
+        register_settings(container=container)
+        config_data = load_config_from_disk(path=CONFIG_FILE_PATH)
 
         # --- Scan and Wire Components ---
         scan_for_components(path=SERVICE_PACKAGE_NAME)
@@ -54,10 +63,10 @@ async def lifespan(app: FastAPI):
         wire_lifecycle_management(container=container,
                                   manager=manager)
 
-        await startup_state(app)
+        await startup_state(app=app)
 
         yield # control back to fastAPI
 
     # -- Shutdown phase ---
     finally:
-        await shutdown_state(app)
+        await shutdown_state(app=app)

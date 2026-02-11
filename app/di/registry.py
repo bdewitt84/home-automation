@@ -47,7 +47,7 @@ def component(key:str=None,
             is_dependency=is_dependency,
             lifecycle=lifecycle,
         )
-        print(f"Registered {cls.__name__} with key {effective_key}")
+        print(f"Registry: Registered {cls.__name__} with key {effective_key}")
         return cls
 
     return decorator

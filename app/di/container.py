@@ -137,7 +137,7 @@ class DependencyContainer:
 
     def register_self(self):
 
-        name = self.__name__
+        name = self.__class__.__name__
         type_ = self.__class__
         factory = lambda: self
 

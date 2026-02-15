@@ -35,15 +35,7 @@ async def lifespan(app: FastAPI):
     try:
         # --- Init Core ---
         container = init_dependency_container(app=app)
-        container.register_factory(key=container.__class__.__name__,
-                                   factory=lambda: container,
-                                   metadata=ComponentMetadata(key=container.__class__.__name__,
-                                                              type=container.__class__
-                                                              )
-                                   )
-        container.map_type_to_key(cls=container.__class__,
-                                  key=container.__class__.__name__,
-                                  )
+        container.register_self()
         manager = init_lifecycle_manager(app=app)
 
         # --- Load Config ---

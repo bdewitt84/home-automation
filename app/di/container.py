@@ -134,3 +134,14 @@ class DependencyContainer:
 
     def map_type_to_key(self, cls: Type[Any], key: str) -> None:
         self._type_registry[cls] = key
+
+    def register_self(self):
+
+        name = self.__name__
+        type_ = self.__class__
+        factory = lambda: self
+
+        metadata = ComponentMetadata(name, type_)
+        self.register_factory(name, factory, metadata)
+
+        self.map_type_to_key(type_, name)

@@ -36,6 +36,14 @@ class DependencyContainer:
 
         return self._singletons[key]
 
+    def resolve_by_type(self, target:Type[Any]) -> Any:
+
+        if target not in self._type_registry:
+            raise ValueError(f"Dependency '{target}' not registered")
+
+        key = self._type_registry[target]
+        return self.resolve(key)
+
     def get_metadata(self, key: str) -> Any:
         if key not in self._metadata_registry:
             raise ValueError(f"Metadata for '{key}' not registered")
@@ -74,7 +82,7 @@ class DependencyContainer:
     def _get_resolved_dependencies(self, requirements: dict[str, Type]) -> dict[str, Any]:
 
         resolved = {
-            name: self.resolve(self._type_registry[arg_type])
+            name: self.resolve_by_type(arg_type)
             for name, arg_type in requirements.items()
         }
 

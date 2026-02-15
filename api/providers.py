@@ -5,6 +5,7 @@ from fastapi import Request, HTTPException
 from app.di.keys import (
     CONTAINER_KEY, MEDIA_CONTROL_SERVICE_KEY,
 )
+from components.services.media.media_control_service import MediaControlService
 
 
 def _get_dependency(key: str, container: DependencyContainer) -> any:
@@ -19,8 +20,8 @@ def _get_dependency(key: str, container: DependencyContainer) -> any:
 
 
 def get_media_control_service(request: Request):
-    container = getattr(request.app.state, CONTAINER_KEY)
-    return _get_dependency(MEDIA_CONTROL_SERVICE_KEY, container)
+    container: DependencyContainer = getattr(request.app.state, CONTAINER_KEY)
+    return container.resolve_by_type(MediaControlService)
 
 
 def get_container(request: Request):

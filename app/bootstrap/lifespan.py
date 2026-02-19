@@ -1,5 +1,4 @@
 # app/bootstrap/lifespan.py
-# comment to force git to track filename change
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -21,7 +20,6 @@ from app.bootstrap.state import (
 
 from app.bootstrap.lifecycle import startup_state, shutdown_state
 from app.di.registry import COMPONENT_METADATA_REGISTRY, ComponentMetadata
-from app.di.wiring import register_settings
 
 
 #todo: place these in app settings?
@@ -40,7 +38,6 @@ async def lifespan(app: FastAPI):
         manager = init_lifecycle_manager(app=app)
 
         # --- Load Config ---
-        register_settings(container=container)
         config_data = load_config_from_disk(path=CONFIG_FILE_PATH)
 
         # --- Scan and Wire Components ---

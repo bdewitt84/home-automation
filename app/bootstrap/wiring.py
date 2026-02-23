@@ -51,10 +51,11 @@ def wire_user_components(config_data: dict,
         settings_instance = settings_cls(**settings_data)
         overrides = {'settings': settings_instance}
 
-        container.register_named_component(
+        container._register_component(
             key=component_name,
             cls=metadata.type,
             metadata=metadata,
+            is_dependency=False,
             overrides=overrides,
         )
 

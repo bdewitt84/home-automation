@@ -84,13 +84,13 @@ class DependencyContainer:
         return factory
 
 
-    def _register_component(self,
-                            key: str,
-                            cls: Type[Any],
-                            metadata: ComponentMetadata = None,
-                            is_dependency: bool = False,
-                            overrides: Optional[dict[str, Any]] = None
-                            ) -> None:
+    def register_component(self,
+                           key: str,
+                           cls: Type[Any],
+                           metadata: ComponentMetadata = None,
+                           is_dependency: bool = False,
+                           overrides: Optional[dict[str, Any]] = None
+                           ) -> None:
 
         overrides = overrides or {}
 
@@ -98,26 +98,6 @@ class DependencyContainer:
         self._validate(requirements, overrides)
         factory = self._create_factory(cls, requirements, overrides)
         self.register_factory(key, factory, metadata, is_dependency)
-
-    def register_as_dependency(self,
-                               key: str,
-                               cls: Type[Any],
-                               metadata: ComponentMetadata = None
-                               ) -> None:
-
-        self._register_component(key, cls, metadata, is_dependency=True)
-
-    def register_named_component(self,
-                                 key: str,
-                                 cls: Type[Any],
-                                 metadata: ComponentMetadata,
-                                 overrides: Optional[dict[str, Any]] = None
-                                 ) -> None:
-
-        self._register_component(key, cls, metadata, is_dependency=False, overrides=overrides)
-
-    def map_type_to_key(self, cls: Type[Any], key: str) -> None:
-        self._registry.map_type_to_key(cls, key)
 
     def register_self(self):
 

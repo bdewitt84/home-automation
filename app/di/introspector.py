@@ -1,0 +1,28 @@
+# ./app/di/introspector.py
+
+from typing import Type, Any, Optional
+from inspect import signature
+
+
+class Introspector:
+    def __init__(self):
+        pass
+
+    def get_requirements(self,
+                                      cls: Type[Any],
+                                      ) -> dict[str, Type]:
+        sig = signature(cls)
+        requirements = {}
+
+        for name, param in sig.parameters.items():
+            arg_type = param.annotation
+
+            if arg_type is param.empty:
+                raise ValueError(f"Parameter {name} has no annotation")
+
+            if arg_type is None:
+                raise ValueError(f"Parameter {name} must not have annotation 'None'")
+
+            requirements[name] = arg_type
+
+        return requirements

@@ -1,15 +1,18 @@
 # app/di/container.py
 
 from typing import Callable, Any, Type, Optional
-from inspect import signature
 
 from app.di.component_registry import ComponentRegistry
+from app.di.introspector import Introspector
 from app.di.registry import ComponentMetadata
 
 
 class DependencyContainer:
-    def __init__(self, registry: Optional[ComponentRegistry]=None):
+    def __init__(self,
+                 registry: Optional[ComponentRegistry]=None,
+                 inspector: Optional[Introspector]=None):
         self._registry = registry or ComponentRegistry()
+        self._inspector = inspector or Introspector()
 
     def register_factory(self,
                          key: str,
@@ -41,29 +44,6 @@ class DependencyContainer:
     def get_registered_component_keys(self) -> list[str]:
         return self._registry.get_registered_keys()
 
-    def _get_constructor_requirements(self,
-                                      cls: Type[Any],
-                                      overrides: Optional[dict[str, Any]] = None,
-                                      ) -> dict[str, Type]:
-        sig = signature(cls)
-        requirements = {}
-        if not overrides: overrides = {}
-
-        for name, param in sig.parameters.items():
-            arg_type = param.annotation
-
-            if arg_type is param.empty:
-                raise ValueError(f"Parameter {name} has no annotation")
-
-            if arg_type is None:
-                raise ValueError(f"Parameter {name} must not have annotation 'None'")
-
-            if not self._registry.is_dependency(arg_type) and name not in overrides:
-                raise ValueError(f"Could not create instance of {cls.__name__}: Parameter '{name}' of type '{arg_type}' not registered with container and not found in overrides")
-
-            requirements[name] = arg_type
-
-        return requirements
 
     def _get_resolved_dependencies(self, requirements: dict[str, Type]) -> dict[str, Any]:
 
@@ -73,6 +53,36 @@ class DependencyContainer:
         }
 
         return resolved
+
+    def _validate(self,
+                      requirements: dict[str, Type],
+                      overrides: Optional[dict[str, Any]]):
+
+        for cls_name, arg_type in requirements.items():
+            if cls_name in overrides:
+                continue
+
+            if not self._registry.is_dependency(arg_type):
+                raise ValueError(
+                    f"Cannot register '{cls_name}': Parameter '{cls_name}' ({arg_type.__name__}) "
+                    f"is not a registered dependency and no override was provided."
+                )
+
+    def _create_factory(self,
+                        cls,
+                        requirements: dict[str, Type],
+                        overrides: Optional[dict[str, Any]] = None) -> Callable[[], Any]:
+        def factory():
+            needed_from_container = {
+                name: type_
+                for name, type_ in requirements.items()
+                if name not in overrides
+            }
+            resolved_dependencies = self._get_resolved_dependencies(needed_from_container)
+            return cls(**resolved_dependencies, **overrides)
+
+        return factory
+
 
     def _register_component(self,
                             key: str,
@@ -84,18 +94,9 @@ class DependencyContainer:
 
         overrides = overrides or {}
 
-        requirements = self._get_constructor_requirements(cls, overrides)
-        
-        def factory():
-            needed_from_container = {
-                name: type_
-                for name, type_ in requirements.items()
-                if name not in overrides
-            }
-            dependencies = self._get_resolved_dependencies(needed_from_container)
-            return cls(**dependencies, **overrides)
-        
-        print(f"Container: Registering {cls.__name__} with key {key}, overrides {overrides.keys()}")
+        requirements = self._inspector.get_requirements(cls)
+        self._validate(requirements, overrides)
+        factory = self._create_factory(cls, requirements, overrides)
         self.register_factory(key, factory, metadata, is_dependency)
 
     def register_as_dependency(self,

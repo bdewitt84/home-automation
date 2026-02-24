@@ -51,16 +51,16 @@ class ComponentRegistry:
         """Caches a resolved instance."""
         self._singletons[key] = instance
 
+    def get_singleton(self, key: str) -> Optional[Any]:
+        """Retrieves a cached instance if it exists."""
+        return self._singletons.get(key, None)
+
     def get_factory(self, key: str) -> Optional[Callable]:
         """Retrieves the factory recipe for a key."""
         try:
             return self._factories[key]
         except KeyError:
-            raise FactoryNotFoundError(f"No factory registered for key '{key}'")
-
-    def get_singleton(self, key: str) -> Optional[Any]:
-        """Retrieves a cached instance if it exists."""
-        return self._singletons.get(key, None)
+            raise FactoryNotFoundError(f"Factory not registered for key '{key}'")
 
     def get_metadata(self, key: str) -> Optional[ComponentMetadata]:
         """Retrieves the metadata 'ID card' for a key."""

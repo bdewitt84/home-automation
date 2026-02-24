@@ -63,15 +63,6 @@ def wire_user_components(config_data: dict,
 def wire_lifecycle_management(container: DependencyContainer,
                               manager: LifeCycleManager
                               ) -> None:
-
-    active_keys = container.get_registered_component_keys()
-    lifecycle_keys = [
-        (key, container.get_metadata(key).lifecycle)
-        for key in active_keys
-        if container.get_metadata(key) and container.get_metadata(key).lifecycle > 0
-    ]
-    sorted_lifecycle_keys = sorted(lifecycle_keys, key=lambda item: item[1])
-
-    for key, lifecycle in sorted_lifecycle_keys:
-        component = container.resolve(key)
-        manager.index_singleton(component)
+    for key in container.get_lifecycle_keys():
+        instance = container.resolve(key)
+        manager.index_singleton(instance)

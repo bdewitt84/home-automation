@@ -18,10 +18,9 @@ class DependencyContainer:
                          key: str,
                          factory: Callable[[], Any],
                          metadata: ComponentMetadata = None,
-                         is_dependency: bool = False,
                          ) -> None:
 
-        self._registry.add_component(key, factory, metadata, is_dependency)
+        self._registry.add_component(key, factory, metadata)
 
     def resolve(self, key: str) -> Any:
         instance = self._registry.get_singleton(key)
@@ -90,7 +89,6 @@ class DependencyContainer:
                            key: str,
                            cls: Type[Any],
                            metadata: ComponentMetadata = None,
-                           is_dependency: bool = False,
                            overrides: Optional[dict[str, Any]] = None
                            ) -> None:
 
@@ -99,7 +97,7 @@ class DependencyContainer:
         requirements = self._inspector.get_requirements(cls)
         self._validate(requirements, overrides)
         factory = self._create_factory(cls, requirements, overrides)
-        self.register_factory(key, factory, metadata, is_dependency)
+        self.register_factory(key, factory, metadata)
 
     def register_self(self):
 
@@ -107,5 +105,5 @@ class DependencyContainer:
         type_ = self.__class__
         factory = lambda: self
 
-        metadata = ComponentMetadata(name, type_)
-        self.register_factory(name, factory, metadata, is_dependency=True)
+        metadata = ComponentMetadata(name, type_, is_dependency=True)
+        self.register_factory(name, factory, metadata)

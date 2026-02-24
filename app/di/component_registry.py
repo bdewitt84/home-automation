@@ -31,7 +31,7 @@ class ComponentRegistry:
                       key: str,
                       factory: Callable,
                       metadata: ComponentMetadata,
-                      is_dependency: bool = False) -> None:
+                      ) -> None:
         """
         Stores the factory and metadata.
         If is_dependency is True, it also maps the class type to this key.
@@ -39,12 +39,12 @@ class ComponentRegistry:
         if key in self._factories:
             raise DuplicateKeyError(f"Key '{key}' is already registered")
 
-        if is_dependency and metadata.type in self._type_to_key:
+        if metadata.is_dependency and metadata.type in self._type_to_key:
             raise DuplicateKeyError(f"Type '{metadata.type.__name__}' is already mapped to a key")
 
         self._factories[key] = factory
         self._metadata[key] = metadata
-        if is_dependency:
+        if metadata.is_dependency:
             self._type_to_key[metadata.type] = key
 
     def store_singleton(self, key: str, instance: Any) -> None:

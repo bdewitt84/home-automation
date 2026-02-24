@@ -19,7 +19,7 @@ from app.bootstrap.state import (
 )
 
 from app.bootstrap.lifecycle import startup_state, shutdown_state
-from app.di.registry import COMPONENT_METADATA_REGISTRY, ComponentMetadata
+from app.di.registry import COMPONENT_METADATA_REGISTRY
 
 
 #todo: place these in app settings?

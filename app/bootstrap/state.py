@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 
+from app.di.component_registry import ComponentRegistry
 from app.di.container import DependencyContainer
 from app.di.keys import CONTAINER_KEY, LIFECYCLE_MANAGER_KEY
 from app.lifecycle_manager import LifeCycleManager

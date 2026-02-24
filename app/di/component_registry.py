@@ -89,3 +89,12 @@ class ComponentRegistry:
 
     def get_registered_keys(self):
         return list(self._factories.keys())
+
+    def get_lifecycle_keys(self):
+
+        keys = [
+            key for key, metadata
+            in self._metadata.items()
+            if metadata.lifecycle > 0
+        ]
+        return sorted(keys, key=lambda k: self.get_metadata(k).lifecycle)

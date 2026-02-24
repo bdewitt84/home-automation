@@ -84,9 +84,6 @@ class ComponentRegistry:
     def is_dependency(self, cls: Type[Any]) -> bool:
         return cls in self._type_to_key
 
-    def map_type_to_key(self, cls: Type[Any], key:str) -> None:
-        self._type_to_key[cls] = key
-
     def get_registered_keys(self):
         return list(self._factories.keys())
 

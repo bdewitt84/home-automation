@@ -44,6 +44,8 @@ class DependencyContainer:
     def get_registered_component_keys(self) -> list[str]:
         return self._registry.get_registered_keys()
 
+    def get_lifecycle_keys(self):
+        return self._registry.get_lifecycle_keys()
 
     def _get_resolved_dependencies(self, requirements: dict[str, Type]) -> dict[str, Any]:
 

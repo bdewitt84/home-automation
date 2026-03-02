@@ -7,6 +7,9 @@ from app.di.introspector import Introspector
 from app.di.registry import ComponentMetadata
 
 
+class DependencyNotFoundError(Exception): pass
+
+
 class DependencyContainer:
     def __init__(self,
                  registry: Optional[ComponentRegistry]=None,
@@ -64,8 +67,8 @@ class DependencyContainer:
                 continue
 
             if not self._registry.is_dependency(arg_type):
-                raise ValueError(
-                    f"Cannot register '{cls_name}': Parameter '{cls_name}' ({arg_type.__name__}) "
+                raise DependencyNotFoundError(
+                    f"Cannot resolve '{cls_name}': ({arg_type.__name__})"
                     f"is not a registered dependency and no override was provided."
                 )
 
@@ -83,7 +86,6 @@ class DependencyContainer:
             return cls(**resolved_dependencies, **overrides)
 
         return factory
-
 
     def register_component(self,
                            key: str,

@@ -4,183 +4,268 @@ import pytest
 
 from unittest.mock import Mock
 
-from app.di.container import DependencyContainer
+from app.di.component_registry import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
+from app.di.container import DependencyContainer, DependencyNotFoundError
+from app.di.registry import ComponentMetadata
 
 
-def test_register_factory_success():
-    container = DependencyContainer()
-    mock_key = 'mock_key'
-    mock_factory = Mock()
+class MockDependency: pass
 
-    container.register_factory(mock_key, mock_factory)
+@pytest.fixture
+def container():
+    return DependencyContainer()
 
-    assert container._factories[mock_key] == mock_factory
-
-
-def test_register_factory_already_registered():
-    container = DependencyContainer()
-    mock_key = 'mock_key'
-    mock_factory = Mock()
-    container._factories[mock_key] = mock_factory
-
-    with pytest.raises(ValueError):
-        container.register_factory(mock_key, mock_factory)
+@pytest.fixture
+def metadata():
+    return ComponentMetadata(
+        key='test',
+        type=MockDependency,
+        is_dependency=False,
+    )
 
 
-def test_resolve_behavior():
-    container = DependencyContainer()
-    mock_key = 'mock_key'
-    mock_instance = Mock()
-    mock_factory = Mock(return_value=mock_instance)
+def create_bulk_component_data(n:int, start:int=0):
+    key_factory_metadata = []
+    for i in range(start, n + start):
+        key = 'test_' + str(i)
+        metadata = ComponentMetadata(key=key, type=MockDependency)
+        metadata.key = key
+        key_factory_metadata.append((key, lambda: None, metadata))
 
-    container.register_factory(mock_key, mock_factory)
-
-    result_1 = container.resolve(mock_key)
-    result_2 = container.resolve(mock_key)
-
-    assert result_1 is mock_instance is result_2
-    mock_factory.assert_called_once()
+    return key_factory_metadata
 
 
-def test_resolve_recursive():
-    container = DependencyContainer()
 
-    class MockLeaf: pass
-    class MockBranch:
-        def __init__(self, root: MockLeaf): pass
-    class MockRoot:
-        def __init__(self, branch: MockBranch): pass
+def test_register_factory_success(container):
+    key = 'test'
+    instance = Mock()
+    factory = lambda: instance
+    metadata = Mock()
+    container.register_factory(key, factory, metadata)
 
-    leaf_key = 'leaf_key'
-    branch_key = 'branch_key'
-    root_key = 'root_key'
+    result = container.resolve(key)
 
-    container.register_as_dependency(leaf_key, MockLeaf)
-    container.register_as_dependency(branch_key, MockBranch)
-    container.register_as_dependency(root_key, MockRoot)
-
-    result = container.resolve(root_key)
-
-    assert isinstance(result, MockRoot)
+    assert result == instance
 
 
-def test_resolve_failure_not_registered():
-    container = DependencyContainer()
-    mock_key = 'mock_key'
+def test_register_factory_duplicate_key(container):
+    container.register_factory('test', lambda: None, Mock())
 
-    with pytest.raises(ValueError):
-        container.resolve(mock_key)
+    with pytest.raises(DuplicateKeyError):
+        container.register_factory('test', lambda: None, Mock())
 
 
-def test_get_registered_component_keys():
-    container = DependencyContainer()
+def test_register_factory_already_registered(container, metadata):
+    metadata.is_dependency = True
 
-    factory_keys = ['mock_key1', 'mock_key2', 'mock_key3']
+    container.register_factory(metadata.key, lambda: None, metadata)
 
-    for key in factory_keys:
-        container._factories[key] = Mock()
+    with pytest.raises(DuplicateKeyError):
+        container.register_factory('different_key', lambda: None, metadata)
+
+
+def test_resolve_success(container, metadata):
+    factory = lambda: None
+    container.register_factory('test', factory, metadata)
+
+    result = container.resolve('test')
+
+    assert result == factory()
+
+
+def test_resolve_not_registered(container):
+
+    with pytest.raises(FactoryNotFoundError):
+        container.resolve('unregistered key')
+
+
+def test_resolve_by_type_success(container, metadata):
+    metadata.is_dependency = True
+    instance = Mock()
+    factory = lambda: instance
+    container.register_factory(metadata.key, factory, metadata)
+
+    result = container.resolve_by_type(MockDependency)
+
+    assert result == instance
+
+
+def test_resolve_by_type_not_registered(container):
+    with pytest.raises(TypeNotFoundError):
+        container.resolve_by_type(MockDependency)
+
+
+def test_get_metadata(container, metadata):
+    container.register_factory('test', lambda: None, metadata)
+
+    result = container.get_metadata('test')
+
+    assert result == metadata
+
+
+def test_get_all_metadata(container):
+
+    key_factory_metadata = create_bulk_component_data(9)
+    for k, f, m in key_factory_metadata:
+        container.register_factory(k, f, m)
+
+    result = container.get_all_registered_metadata()
+
+    for key, _, metadata in key_factory_metadata:
+        assert result[key] == metadata
+
+
+def test_get_registered_component_keys(container):
+
+    key_factory_metadata = create_bulk_component_data(9)
+    for k, f, m in key_factory_metadata:
+        container.register_factory(k, f, m)
 
     result = container.get_registered_component_keys()
 
-    for key in factory_keys:
+    for key, _, _ in key_factory_metadata:
         assert key in result
 
 
-def test_get_constructor_requirements_success():
+def test_get_lifecycle_keys(container):
 
-    container = DependencyContainer()
+    component_data = [
+        {"key": "late", "lifecycle": 10},
+        {"key": "early", "lifecycle": 1},
+        {"key": "none", "lifecycle": 0},
+        {"key": "middle", "lifecycle": 5},
+    ]
 
-    class MockCls:
-        def __init__(self, p1: str, p2: int): pass
+    for item in component_data:
+        key = item["key"]
+        lifecycle = item["lifecycle"]
+        metadata = ComponentMetadata(key, MockDependency, lifecycle=lifecycle)
+        container.register_factory(key, lambda: None, metadata)
 
-    container.map_type_to_key(str, 'str_key')
-    container.map_type_to_key(int, 'int_key')
+    result = container.get_lifecycle_keys()
 
-    result = container._get_constructor_requirements(MockCls)
-
-    expected = {
-        'p1': str,
-        'p2': int,
-    }
-
-    assert result == expected
-
-
-def test_get_constructor_requirements_not_registered():
-    container = DependencyContainer()
-
-    class MockCls:
-        def __init__(self, p1: str): pass
-
-    with pytest.raises(ValueError) as e:
-        container._get_constructor_requirements(MockCls)
-
-    assert 'not registered' in str(e)
+    assert result == ["early", "middle", "late"]
 
 
-def test_get_constructor_requirements_no_annotation():
-
-    container = DependencyContainer()
-
-    class MockCls:
-        def __init__(self, p1): pass
-
-    with pytest.raises(ValueError) as e:
-        container._get_constructor_requirements(MockCls)
-
-    assert 'no annotation' in str(e)
-
-
-def test_get_constructor_requirements_annotation_is_none():
-
-    container = DependencyContainer()
-
-    class MockCls:
-        def __init__(self, p1: None): pass
-
-    with pytest.raises(ValueError) as e:
-        container._get_constructor_requirements(MockCls)
-
-    assert 'None' in str(e)
-
-
-def test_get_resolved_dependencies():
-    container = DependencyContainer()
-    class MockCls1: pass
-    class MockCls2: pass
-    container.map_type_to_key(MockCls1, 'MockCls1')
-    container.map_type_to_key(MockCls2, 'MockCls2')
-    container.register_factory('MockCls1', lambda: MockCls1())
-    container.register_factory('MockCls2', lambda: MockCls2())
-
+def test_get_resolved_dependencies(container):
+    class DependencyA: pass
+    class DependencyB: pass
     requirements = {
-        'p1': MockCls1,
-        'p2': MockCls2,
+        "parameter_a": DependencyA,
+        "parameter_b": DependencyB,
     }
+    container.register_factory("DependencyA", lambda: DependencyA(), ComponentMetadata(
+        key="DependencyA",
+        type=DependencyA,
+        is_dependency=True,
+    ))
+    container.register_factory("DependencyB", lambda: DependencyB(), ComponentMetadata(
+        key="DependencyB",
+        type=DependencyB,
+        is_dependency=True,
+    ))
 
     result = container._get_resolved_dependencies(requirements)
 
-    assert isinstance(result['p1'], MockCls1)
-    assert isinstance(result['p2'], MockCls2)
+    assert isinstance(result["parameter_a"], DependencyA)
+    assert isinstance(result["parameter_b"], DependencyB)
 
 
-def test_register_class():
-    container = DependencyContainer()
-    mock_key = 'mock_key'
-    class MockCls: pass
+def test_validate_pass_no_overrides(container):
+    class DependencyA: pass
+    class DependencyB: pass
 
-    container.register_as_dependency(mock_key, MockCls)
-    result = container.resolve(mock_key)
+    requirements = {
+        "DependencyA": DependencyA,
+        "DependencyB": DependencyB,
+    }
 
-    assert isinstance(result, MockCls)
+    container.register_factory("DependencyA", lambda: DependencyA(), ComponentMetadata(
+        key="DependencyA",
+        type=DependencyA,
+        is_dependency=True,
+    ))
+    container.register_factory("DependencyB", lambda: DependencyB(), ComponentMetadata(
+        key="DependencyB",
+        type=DependencyB,
+        is_dependency=True,
+    ))
+
+    container._validate(requirements, {})
+    pass # does not throw
 
 
-def test_map_type_to_key():
-    container = DependencyContainer()
+def test_validate_pass_with_override(container):
+    class DependencyA: pass
+    class DependencyB: pass
+    requirements = {
+        "registered": DependencyA,
+        "not_registered": DependencyB,
+    }
+    overrides = {
+        "not_registered": DependencyB(),
+    }
+    container.register_factory("DependencyA", lambda: DependencyA(), ComponentMetadata(
+        key="DependencyA",
+        type=DependencyA,
+        is_dependency=True,
+    ))
 
-    class MockType: pass
-    mock_key = 'mock_key'
+    container._validate(requirements, overrides)
+    pass  # does not throw
 
-    container.map_type_to_key(MockType, mock_key)
 
-    assert container._type_registry[MockType] == mock_key
+def test_validate_fail_not_registered_not_in_overrides(container):
+    class DependencyA: pass
+
+    class DependencyB: pass
+
+    requirements = {
+        "registered": DependencyA,
+        "not_registered": DependencyB,
+    }
+    container.register_factory("DependencyA", lambda: DependencyA(), ComponentMetadata(
+        key="DependencyA",
+        type=DependencyA,
+        is_dependency=True,
+    ))
+
+    with pytest.raises(DependencyNotFoundError) as e:
+        container._validate(requirements, {})
+        assert 'registered' in str(e.value)
+        assert 'override' in str(e.value)
+
+
+def test_create_factory(container):
+
+    class MockComponent: pass
+
+    factory = container._create_factory(MockComponent, {}, {})
+    result = factory()
+
+    assert isinstance(result, MockComponent)
+
+
+def test_register_component(container):
+    class MockComponent: pass
+    container.register_component(
+        "MockComponent",
+        MockComponent,
+        ComponentMetadata(
+            key="MockComponent",
+            type=MockComponent,
+        ),
+        {}
+    )
+
+    result = container.resolve("MockComponent")
+
+    assert isinstance(result, MockComponent)
+
+
+def test_register_self(container):
+    container.register_self()
+
+    result = container.resolve(container.__class__.__name__)
+
+    assert isinstance(result, DependencyContainer)

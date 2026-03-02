@@ -20,6 +20,10 @@ class TypeNotFoundError(Exception):
     pass
 
 
+class MetadataNotFoundError(Exception):
+    pass
+
+
 class ComponentRegistry:
     def __init__(self):
         self._factories: dict[str, Callable] = {}
@@ -36,8 +40,12 @@ class ComponentRegistry:
         Stores the factory and metadata.
         If is_dependency is True, it also maps the class type to this key.
         """
+
         if key in self._factories:
             raise DuplicateKeyError(f"Key '{key}' is already registered")
+
+        if metadata is None:
+            raise MetadataNotFoundError(f"Metadata not found for component with key '{key}'")
 
         if metadata.is_dependency and metadata.type in self._type_to_key:
             raise DuplicateKeyError(f"Type '{metadata.type.__name__}' is already mapped to a key")

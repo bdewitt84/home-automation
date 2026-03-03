@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 from app.di.component_registry import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
 from app.di.container import DependencyContainer, DependencyNotFoundError
-from app.di.registry import ComponentMetadata
+from app.di.registry import ComponentMetadata, component
 
 
 class MockDependency: pass
@@ -23,6 +23,12 @@ def metadata():
         is_dependency=False,
     )
 
+def generate_metadata(cls, is_dependency=False):
+    return ComponentMetadata(
+        key=cls.__name__,
+        type=cls,
+        is_dependency=is_dependency,
+    )
 
 def create_bulk_component_data(n:int, start:int=0):
     key_factory_metadata = []
@@ -64,13 +70,35 @@ def test_register_factory_already_registered(container, metadata):
         container.register_factory('different_key', lambda: None, metadata)
 
 
-def test_resolve_success(container, metadata):
+def test_resolve_success_flat(container, metadata):
     factory = lambda: None
     container.register_factory('test', factory, metadata)
 
     result = container.resolve('test')
 
     assert result == factory()
+
+
+def test_resolve_success_recursive(container):
+    class DependencyA: pass
+    metadata_a = generate_metadata(DependencyA, True)
+    class DependencyB: pass
+    metadata_b = generate_metadata(DependencyB, True)
+    class MockComponent:
+        def __init__(self, dep_a:DependencyA, dep_b:DependencyB):
+            self.dep_a = dep_a
+            self.dep_b = dep_b
+    metadata_comp = generate_metadata(MockComponent)
+
+    container.register_component(metadata_a.key, metadata_a.type, metadata_a)
+    container.register_component(metadata_b.key, metadata_b.type, metadata_b)
+    container.register_component(metadata_comp.key, metadata_comp.type, metadata_comp)
+
+    result: MockComponent = container.resolve(metadata_comp.key)
+
+    assert isinstance(result, MockComponent)
+    assert isinstance(result.dep_a, DependencyA)
+    assert isinstance(result.dep_b, DependencyB)
 
 
 def test_resolve_not_registered(container):
@@ -232,8 +260,8 @@ def test_validate_fail_not_registered_not_in_overrides(container):
 
     with pytest.raises(DependencyNotFoundError) as e:
         container._validate(requirements, {})
-        assert 'registered' in str(e.value)
-        assert 'override' in str(e.value)
+    assert 'registered' in str(e.value)
+    assert 'override' in str(e.value)
 
 
 def test_create_factory(container):

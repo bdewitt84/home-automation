@@ -4,6 +4,9 @@ from typing import Type, Any, Optional
 from inspect import signature
 
 
+class AnnotationNotFoundError(Exception): pass
+
+
 class Introspector:
     def __init__(self):
         pass
@@ -18,7 +21,7 @@ class Introspector:
             arg_type = param.annotation
 
             if arg_type is param.empty:
-                raise ValueError(f"Parameter {name} has no annotation")
+                raise AnnotationNotFoundError(f"Parameter {name} has no annotation")
 
             if arg_type is None:
                 raise ValueError(f"Parameter {name} must not have annotation 'None'")

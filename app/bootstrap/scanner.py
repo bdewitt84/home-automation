@@ -5,8 +5,6 @@ import pkgutil
 from typing import Type, Any, Callable, Iterator
 from types import ModuleType
 
-from config.project import FACTORY_PACKAGE_PATH
-
 ModuleInfo = Any
 
 

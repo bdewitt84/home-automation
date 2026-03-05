@@ -1,8 +1,6 @@
 # tests/lifecycle_manager.py
 
 import pytest
-import pytest_asyncio
-import asyncio
 from unittest.mock import Mock, AsyncMock, create_autospec, call
 
 from app.lifecycle_manager import LifeCycleManager

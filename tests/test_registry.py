@@ -1,4 +1,5 @@
 # tests/test_registry.py
+
 from unittest.mock import Mock
 
 import app.di.registry
@@ -7,14 +8,13 @@ from app.di.registry import component, ComponentMetadata, COMPONENT_METADATA_REG
 
 def test_clear_registry():
 
-    mock_service_cls = Mock()
+    class MockComponent: pass
     mock_metadata = ComponentMetadata(
-        'mock_key',
-        100,
-        'mock_scope'
+        key='mock_key',
+        type=MockComponent,
     )
 
-    app.di.registry.COMPONENT_METADATA_REGISTRY = {mock_service_cls: mock_metadata}
+    app.di.registry.COMPONENT_METADATA_REGISTRY = {MockComponent: mock_metadata}
 
     clear_registry()
 
@@ -26,7 +26,9 @@ def test_register_component_with_container():
     test_key = 'test_key'
     test_lifecycle = 100
 
-    @component(test_key, test_lifecycle)
+    @component(
+        key=test_key,
+        lifecycle=test_lifecycle)
     class TestComponent:
         pass
 

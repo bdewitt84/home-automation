@@ -25,4 +25,4 @@ def scan_for_components(path: str,
     for _finder, name, _is_pkg in package_walker(package.__path__):
         module_name = package.__name__ + '.' + name
         module_importer(module_name)
-        print(f"Imported component {module_name}")
+        print(f"Scanner: Imported '{module_name}'")

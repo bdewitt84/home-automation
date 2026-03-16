@@ -1,16 +1,16 @@
 # app/di/lifecycle_manager.py
 
 from typing import Any
-from interfaces import LifecycleManagementInterface
+from interfaces import LifecycleManagement
 
 
 class LifeCycleManager:
     def __init__(self):
-        self._singletons: [LifecycleManagementInterface] = []
+        self._singletons: [LifecycleManagement] = []
 
     def index_singleton(self, singleton: Any):
         # Don't index non-lifecycle instances
-        if not isinstance(singleton, LifecycleManagementInterface):
+        if not isinstance(singleton, LifecycleManagement):
             return
 
         # Don't index an instance twice. This is a policy violation, so we raise

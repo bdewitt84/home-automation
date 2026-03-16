@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 
-class LifecycleManagementInterface(ABC):
+class LifecycleManagement(ABC):
 
     @abstractmethod
     async def start(self):

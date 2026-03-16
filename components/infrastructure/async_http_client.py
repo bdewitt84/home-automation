@@ -5,11 +5,11 @@ from typing import Optional, Type
 
 from app.di.keys import ASYNC_HTTP_CLIENT_KEY
 from app.di.registry import component
-from interfaces import LifecycleManagementInterface
+from interfaces import LifecycleManagement
 
 
 @component(is_dependency=True, lifecycle=100)
-class AsyncHttpClient(LifecycleManagementInterface):
+class AsyncHttpClient(LifecycleManagement):
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None
 

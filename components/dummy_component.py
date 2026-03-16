@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from app.di.registry import component
 from components.infrastructure import AsyncHttpClient
-from interfaces import LifecycleManagementInterface
+from interfaces import LifecycleManagement
 
 
 class DummyComponentSettings(BaseModel):
@@ -14,7 +14,7 @@ class DummyComponentSettings(BaseModel):
            lifecycle=1000,
            settings_cls=DummyComponentSettings)
 
-class DummyComponent(LifecycleManagementInterface):
+class DummyComponent(LifecycleManagement):
     def __init__(self, http_client: AsyncHttpClient, settings: DummyComponentSettings):
         self.http_client = http_client
         self.settings = settings

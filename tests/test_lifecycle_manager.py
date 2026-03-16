@@ -4,12 +4,12 @@ import pytest
 from unittest.mock import Mock, AsyncMock, create_autospec, call
 
 from app.lifecycle_manager import LifeCycleManager
-from interfaces import LifecycleManagementInterface
+from interfaces import LifecycleManagement
 
 
 def test_index_singleton_index_valid_interface():
     manager = LifeCycleManager()
-    singleton_managed = create_autospec(LifecycleManagementInterface)
+    singleton_managed = create_autospec(LifecycleManagement)
 
     manager.index_singleton(singleton_managed)
 
@@ -27,7 +27,7 @@ def test_index_singleton_skip_invalid_interface():
 
 def test_index_singleton_only_index_once():
     manager = LifeCycleManager()
-    singleton_managed = create_autospec(LifecycleManagementInterface)
+    singleton_managed = create_autospec(LifecycleManagement)
 
     manager.index_singleton(singleton_managed)
 
@@ -39,9 +39,9 @@ def test_index_singleton_only_index_once():
 async def test_start_registered_stops_on_first_failure():
 
     manager = LifeCycleManager()
-    singleton_1_startable = create_autospec(LifecycleManagementInterface)
-    singleton_2_unstartable = create_autospec(LifecycleManagementInterface)
-    singleton_3_startable = create_autospec(LifecycleManagementInterface)
+    singleton_1_startable = create_autospec(LifecycleManagement)
+    singleton_2_unstartable = create_autospec(LifecycleManagement)
+    singleton_3_startable = create_autospec(LifecycleManagement)
 
     singleton_1_startable.start = AsyncMock()
     singleton_2_unstartable.start = AsyncMock()
@@ -66,9 +66,9 @@ async def test_start_registered_stops_on_first_failure():
 
 async def test_stop_registered_continues_after_failure():
     manager = LifeCycleManager()
-    singleton_1_stoppable = create_autospec(LifecycleManagementInterface)
-    singleton_2_unstoppable = create_autospec(LifecycleManagementInterface)
-    singleton_3_stoppable = create_autospec(LifecycleManagementInterface)
+    singleton_1_stoppable = create_autospec(LifecycleManagement)
+    singleton_2_unstoppable = create_autospec(LifecycleManagement)
+    singleton_3_stoppable = create_autospec(LifecycleManagement)
 
     singleton_1_stoppable.stop = AsyncMock()
     singleton_2_unstoppable.stop = AsyncMock()
@@ -93,8 +93,8 @@ async def test_stop_registered_continues_after_failure():
 async def test_stop_registered_executes_in_reverse_order():
     manager = LifeCycleManager()
     # Create mocks and give them names for easy identification in call logs
-    singleton_1 = create_autospec(LifecycleManagementInterface, instance=True)
-    singleton_2 = create_autospec(LifecycleManagementInterface, instance=True)
+    singleton_1 = create_autospec(LifecycleManagement, instance=True)
+    singleton_2 = create_autospec(LifecycleManagement, instance=True)
 
     # Attach mock calls to parent so we can track the order
     parent_mock = AsyncMock()

@@ -5,7 +5,7 @@ import asyncio
 from asyncio import StreamReader, create_subprocess_exec, subprocess
 from pydantic import BaseModel
 
-from interfaces import LifecycleManagementInterface
+from interfaces import LifecycleManagement
 from app.di.registry import component
 
 
@@ -19,7 +19,7 @@ class VlcProcessManagerSettings(BaseModel):
            lifecycle=100,
            settings_cls=VlcProcessManagerSettings)
 
-class VlcProcessManager(LifecycleManagementInterface):
+class VlcProcessManager(LifecycleManagement):
 
     def __init__(self, settings: VlcProcessManagerSettings) -> None:
 

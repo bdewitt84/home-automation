@@ -5,6 +5,24 @@ from typing import Type, Any
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata
 from app.lifecycle_manager import LifeCycleManager
+from config.supported_platforms import SUPPORTED_PLATFORMS
+from interfaces import SystemService
+
+
+def wire_system_service(container: DependencyContainer,
+                        platform: str
+                        ) -> None:
+    service_cls = SUPPORTED_PLATFORMS.get(platform)
+    if service_cls is None:
+        raise RuntimeError(f"Platform {platform} is not supported")
+
+    metadata: ComponentMetadata = ComponentMetadata(
+        key=SystemService.__name__,
+        type=SystemService,
+        is_dependency=True,
+    )
+
+    container.register_component(metadata.key, service_cls)
 
 
 def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
@@ -27,8 +45,6 @@ def get_metadata_by_key(key: str,
     for metadata in registry.values():
         if metadata.key == key:
             return metadata
-
-    return None
 
 
 def wire_user_components(config_data: dict,

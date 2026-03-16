@@ -22,7 +22,7 @@ def wire_system_service(container: DependencyContainer,
         is_dependency=True,
     )
 
-    container.register_component(metadata.key, service_cls)
+    container.register_component(metadata.key, service_cls, metadata)
 
 
 def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],

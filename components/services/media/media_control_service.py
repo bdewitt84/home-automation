@@ -29,6 +29,5 @@ class MediaControlService:
     def stop(self) -> dict:
         return {'message': 'stop stub'}
 
-
     def enqueue(self, file_path: str) -> dict:
         return {'message': 'enqueue stub'}

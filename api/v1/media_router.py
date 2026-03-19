@@ -13,7 +13,7 @@ media_router = APIRouter(
 )
 
 
-@media_router.get("/{component_name}/play")
+# @media_router.get("/{component_name}/play")
 async def media_play(component_name:str,
                      media_service: MediaControlService = Depends(get_media_control_service),
                      ) -> dict:
@@ -24,6 +24,6 @@ async def media_play(component_name:str,
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@media_router.get("/")
+# @media_router.get("/")
 async def media_root():
     return {"media root hit": {}}

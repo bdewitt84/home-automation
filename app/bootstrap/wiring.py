@@ -1,12 +1,114 @@
 # app/bootstrap/wiring.py
+import inspect
+from typing import Type, Any, Callable
 
-from typing import Type, Any
+from fastapi import FastAPI
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata
+from app.di.route import ControllerInfo, RouteInfo
 from app.lifecycle_manager import LifeCycleManager
 from config.supported_platforms import SUPPORTED_PLATFORMS
 from interfaces import SystemService
+
+
+class MultipleControllerBaseError(Exception): pass
+
+
+def filter_signature_params(sig: inspect.Signature,
+                            names: list[str]):
+    filtered_params =[
+        p
+        for name, p in sig.parameters.items()
+        if name not in names
+    ]
+    return sig.replace(parameters=filtered_params)
+
+
+def _create_handler(cls: type,
+                    abc: type,
+                    method_name: str,
+                    container: DependencyContainer,
+                    sig_inspector: Callable[[object], Any] = inspect.signature,
+                    ) -> Callable:
+
+    target_method = getattr(abc, method_name)
+    orig_signature = sig_inspector(target_method)
+    filtered_signature = filter_signature_params(orig_signature, ['self'])
+
+    async def handler(**kwargs):
+        service = container.resolve_by_type(cls)
+        func = getattr(service, method_name)
+        if inspect.iscoroutinefunction(func):
+            return await func(**kwargs)
+        else:
+            return func(**kwargs)
+
+    handler.__signature__ = filtered_signature
+    handler.__name__ = method_name
+
+    return handler
+
+
+def build_full_path(prefix: str,
+                    path: str
+                    ) -> str:
+    clean_prefix = prefix.strip('/')
+    clean_path = path.lstrip('/')
+    return f'/{clean_prefix}/{clean_path}'
+
+
+def get_controller_base(cls):
+    controller_base = None
+    for base in cls.__mro__:
+        if not hasattr(base, '_controller_info'):
+            continue
+        if base is cls:
+            continue
+        if controller_base is not None and base != controller_base:
+            raise MultipleControllerBaseError(f"Multiple controller bases found for {cls.__name__}, {controller_base.__name__} and {base.__name__}")
+
+        controller_base = base
+
+    return controller_base or cls
+
+
+def wire_controller_methods(cls: type,
+                            base_cls: type,
+                            ctrl_info: ControllerInfo,
+                            app: FastAPI,
+                            container: DependencyContainer,):
+
+    base_methods = inspect.getmembers(base_cls, predicate=inspect.isfunction)
+    for name, method in base_methods:
+        if not hasattr(method, '_route_info'):
+            continue
+
+        route_info: RouteInfo = method._route_info
+        full_path = build_full_path(ctrl_info.prefix, route_info.path)
+        handler = _create_handler(cls, base_cls, name, container)
+
+        app.add_api_route(path=full_path,
+                          endpoint=handler,
+                          methods=route_info.methods,
+                          tags=ctrl_info.tags,)
+
+        print(f"Wiring: added route {full_path}")
+
+
+def build_api_routes(app: FastAPI,
+                     container: DependencyContainer,
+                     registry: dict[type, ComponentMetadata]
+                     ):
+
+    for cls, metadata in registry.items():
+        if not hasattr(cls, '_controller_info'):
+            continue
+
+        print(f"Wiring: found controller {cls.__name__}")
+        base_cls = get_controller_base(cls)
+        ctrl_info = base_cls._controller_info
+        wire_controller_methods(cls, base_cls, ctrl_info, app, container)
 
 
 def wire_system_service(container: DependencyContainer,

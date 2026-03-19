@@ -8,8 +8,11 @@ from app.bootstrap.scanner import scan_for_components
 from app.bootstrap.wiring import (
     wire_infrastructure_components,
     wire_user_components,
-    wire_lifecycle_management, wire_system_service, build_api_routes,
+    wire_lifecycle_management,
+    wire_system_service,
 )
+
+from app.di.builder import RouteBuilder
 
 from app.bootstrap.config import load_config_from_disk
 
@@ -56,9 +59,9 @@ async def lifespan(app: FastAPI):
         wire_lifecycle_management(container=container,
                                   manager=manager)
 
-        build_api_routes(app=app,
-                         container=container,
-                         registry=COMPONENT_METADATA_REGISTRY)
+        builder = RouteBuilder(app=app,
+                               container=container)
+        builder.build_api_routes(registry=COMPONENT_METADATA_REGISTRY)
 
         await startup_state(app=app)
 

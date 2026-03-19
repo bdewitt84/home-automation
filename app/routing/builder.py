@@ -2,8 +2,8 @@
 from fastapi import FastAPI
 from typing import Any, Callable
 
+from app.routing.decorators import ControllerInfo, RouteInfo
 from app.di.container import DependencyContainer
-from app.di.decorators import ControllerInfo, RouteInfo
 from app.di.registry import ComponentMetadata
 
 from inspect import Signature, Parameter, signature, getmembers, isfunction, iscoroutinefunction

@@ -12,7 +12,7 @@ from app.bootstrap.wiring import (
     wire_system_service,
 )
 
-from app.di.builder import RouteBuilder
+from app.routing.builder import RouteBuilder
 
 from app.bootstrap.config import load_config_from_disk
 

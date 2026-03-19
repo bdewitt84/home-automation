@@ -1,12 +1,9 @@
 # app/bootstrap/wiring.py
-import inspect
-from typing import Type, Any, Callable
 
-from fastapi import FastAPI
+from typing import Type, Any
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata
-from app.di.decorators import ControllerInfo, RouteInfo
 from app.lifecycle_manager import LifeCycleManager
 from config.supported_platforms import SUPPORTED_PLATFORMS
 from interfaces import SystemService

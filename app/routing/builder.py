@@ -1,4 +1,4 @@
-# app/di/builder.py
+# app/routing/builder.py
 from fastapi import FastAPI
 from typing import Any, Callable
 

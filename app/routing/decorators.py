@@ -1,4 +1,4 @@
-# app/di/decorators.py
+# app/routing/decorators.py
 
 from dataclasses import dataclass, field
 from typing import List, Callable, Any

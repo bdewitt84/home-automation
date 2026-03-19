@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from app.di.route import route, controller
+from app.di.decorators import route, controller
 
 
 @controller(prefix="dummy",

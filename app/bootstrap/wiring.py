@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata
-from app.di.route import ControllerInfo, RouteInfo
+from app.di.decorators import ControllerInfo, RouteInfo
 from app.lifecycle_manager import LifeCycleManager
 from config.supported_platforms import SUPPORTED_PLATFORMS
 from interfaces import SystemService

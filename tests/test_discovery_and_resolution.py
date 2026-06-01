@@ -14,12 +14,14 @@ from app.di.registry import COMPONENT_METADATA_REGISTRY
 
 @pytest.fixture
 def container():
-    return DependencyContainer()
+    container = DependencyContainer()
+    container.register_self()
+    return container
 
 
 def test_discovery_and_resolution(container, tmp_path):
 
-    comp_dir = tmp_path / "components"
+    comp_dir = tmp_path / "test_components"
     comp_dir.mkdir()
     (comp_dir / "__init__.py").write_text("")
 
@@ -38,7 +40,7 @@ def test_discovery_and_resolution(container, tmp_path):
     importlib.invalidate_caches()
 
     try:
-        scan_for_components('components')
+        scan_for_components('test_components')
         wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
                                        container=container)
 

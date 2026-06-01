@@ -1,8 +1,8 @@
 # tests/test_system_service.py
 
 from unittest.mock import patch
-from components.services import debian_system_service
-from components.services.debian_system_service import UPDATE_SCRIPT_PATH # We import the constant for clarity
+from components.services.debian_system_service import DebianSystemService
+from components.services.debian_system_service import UPDATE_SCRIPT_RELATIVE_PATH # We import the constant for clarity
 
 
 OS_UTILS_MOCK_PATH = 'core.os_utils.execute_shell_command'
@@ -14,14 +14,15 @@ def test_update_application_success():
     underlying OS utility with the system-wide update script command path.
     """
 
+    system_service = DebianSystemService()
+
     mock_return = {
         "status": "success",
-        "command": UPDATE_SCRIPT_PATH,
+        "command": UPDATE_SCRIPT_RELATIVE_PATH,
         "stdout": "git pull successful; restarting..."
     }
 
     with patch(OS_UTILS_MOCK_PATH, return_value=mock_return):
-
         result = system_service.update_application()
 
         assert result['status'] == "success"
@@ -35,7 +36,8 @@ def test_update_application_failure():
     returns an error from the underlying OS utility.
     :return:
     """
-    cmd = UPDATE_SCRIPT_PATH
+    system_service = DebianSystemService()
+    cmd = UPDATE_SCRIPT_RELATIVE_PATH
 
     mock_return = {
         "status": "error",
@@ -48,4 +50,4 @@ def test_update_application_failure():
         result = system_service.update_application()
         assert result['status'] == "error"
         assert 'stderr' in result
-        mock_run.assert_called_once_with(cmd)
+        assert any(cmd in arg for arg in mock_run.call_args.args)

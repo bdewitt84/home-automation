@@ -1,20 +1,26 @@
 # tests/test_registry.py
 
-from unittest.mock import Mock
+import pytest
 
 import app.di.registry
 from app.di.registry import component, ComponentMetadata, COMPONENT_METADATA_REGISTRY, clear_registry
 
 
-def test_clear_registry():
+@pytest.fixture(autouse=True)
+def cleanup():
+    yield
+    clear_registry()
 
+
+def test_clear_registry():
     class MockComponent: pass
+
     mock_metadata = ComponentMetadata(
         key='mock_key',
         type=MockComponent,
     )
 
-    app.di.registry.COMPONENT_METADATA_REGISTRY = {MockComponent: mock_metadata}
+    app.di.registry.COMPONENT_METADATA_REGISTRY.update({MockComponent: mock_metadata})
 
     clear_registry()
 

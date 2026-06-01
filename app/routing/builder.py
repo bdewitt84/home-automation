@@ -93,11 +93,13 @@ class RouteBuilder:
             route_info: RouteInfo = method._route_info
             full_path = self._build_full_path(ctrl_info.prefix, route_info.path)
             handler = self._create_handler(cls, base_cls, name)
+            summary = method.__doc__ or name.replace("_", " ").capitalize()
 
             self.app.add_api_route(path=full_path,
                               endpoint=handler,
                               methods=route_info.methods,
-                              tags=ctrl_info.tags,)
+                              tags=ctrl_info.tags,
+                              summary=summary)
 
             print(f"Wiring: added route {full_path}")
 

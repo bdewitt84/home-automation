@@ -2,9 +2,8 @@
 
 from app.di.container import DependencyContainer
 from fastapi import Request, HTTPException
-from app.di.keys import (
-    CONTAINER_KEY, MEDIA_CONTROL_SERVICE_KEY,
-)
+
+from app.di.keys import CONTAINER_KEY
 from components.services.media.media_control_service import MediaControlService
 
 

@@ -1,12 +1,10 @@
 # tests/test_vlc_media_control.py
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, AsyncMock
 import xml.etree.ElementTree as ET
 
 import requests
-
 from components.services.media.vlc_media_control import VlcMediaController
-from interfaces.media_control_interface import MediaControlStatus
 
 
 MOCK_VLC_GET_PATH = 'components.services.vlc_media_control.requests.get'
@@ -30,6 +28,28 @@ def create_mock_response(return_status: dict) -> requests.Response:
     return response
 
 
+def create_mock_settings(server_url=None, password=None):
+
+    mock_http_server_url = server_url or 'http://127.0.0.1:8080'
+    mock_vlc_password = password or '<PASSWORD>'
+
+    mock_settings = MagicMock()
+    mock_settings.password = mock_vlc_password
+    mock_settings.vlc_http_server_url = mock_http_server_url
+
+    return mock_settings
+
+
+def create_mock_client(state=None):
+
+    return_status = {
+        'state': state or 'Default'
+    }
+    mock_client = AsyncMock()
+    mock_client.get.return_value = create_mock_response(return_status)
+    return mock_client
+
+
 def assert_request_made(mock_get: requests.Response | MagicMock, expected_params: dict) -> None:
     mock_get.assert_called_once()
     assert mock_get.call_args[1]['auth'] == ('', MOCK_VLC_PASSWORD)
@@ -41,51 +61,59 @@ def assert_request_made(mock_get: requests.Response | MagicMock, expected_params
     call_params = mock_get.call_args[1]['params']
     assert expected_params == call_params
 
-def test_play_success():
+
+async def test_play_success():
 
     # Arrange
-    return_status = {
-        'state': 'playing'
-    }
-    response = create_mock_response(return_status)
-    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
+    mock_client = create_mock_client('playing')
+    mock_settings = create_mock_settings()
+    vlc_media_control = VlcMediaController(mock_client, mock_settings)
+
     expected_params = {'command': 'pl_play'}
 
     # Act
-    with patch('requests.get', return_value=response) as mock_get:
-        result = vlc_media_control.play()
+    result = await vlc_media_control.play()
 
     # Assert
-    assert_request_made(mock_get, expected_params)
+    mock_client.get.assert_called_once_with(MOCK_VLC_HTTP_SERVER_URL + '/requests/status.xml',
+                                            auth=('', MOCK_VLC_PASSWORD),
+                                            params=expected_params)
     assert result.state == 'playing'
 
-def test_stop_success():
-    return_status = { 'state': 'stopped' }
-    response = create_mock_response(return_status)
-    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
-    expected_params = { 'command': 'pl_stop' }
+
+async def test_stop_success():
+
+    # Arrange
+    mock_client = create_mock_client('stopped')
+    mock_settings = create_mock_settings()
+    vlc_media_control = VlcMediaController(mock_client, mock_settings)
+
+    expected_params = {'command': 'pl_stop'}
 
     # Act
-    with patch('requests.get', return_value=response) as mock_get:
-        result = vlc_media_control.stop()
+    result = await vlc_media_control.stop()
 
     # Assert
-    assert_request_made(mock_get, expected_params)
+    mock_client.get.assert_called_once_with(MOCK_VLC_HTTP_SERVER_URL + '/requests/status.xml',
+                                            auth=('', MOCK_VLC_PASSWORD),
+                                            params=expected_params)
     assert result.state == 'stopped'
 
-def test_enqueue_success():
 
-    return_status = {}
-    response = create_mock_response(return_status)
-    mock_path = 'video.mp4'
-    expected_params = {
-        'command': 'in_enqueue',
-        'input': mock_path
-    }
-    vlc_media_control = VlcMediaController(MOCK_VLC_HTTP_SERVER_URL, MOCK_VLC_PASSWORD)
+async def test_enqueue_success():
 
-    with patch('requests.get', return_value=response) as mock_get:
-        result = vlc_media_control.enqueue(mock_path)
+    # Arrange
+    mock_client = create_mock_client()
+    mock_settings = create_mock_settings()
+    vlc_media_control = VlcMediaController(mock_client, mock_settings)
 
-    assert_request_made(mock_get, expected_params)
-    assert isinstance(result, MediaControlStatus)
+    mock_path = 'mock_path'
+    expected_params = {'command': 'in_enqueue', 'input': mock_path}
+
+    # Act
+    result = await vlc_media_control.enqueue(mock_path)
+
+    # Assert
+    mock_client.get.assert_called_once_with(MOCK_VLC_HTTP_SERVER_URL + '/requests/status.xml',
+                                            auth=('', MOCK_VLC_PASSWORD),
+                                            params=expected_params)

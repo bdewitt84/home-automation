@@ -46,11 +46,11 @@ async def lifespan(app: FastAPI):
         # --- Scan and Wire Components ---
         scan_for_components(path=SERVICE_PACKAGE_NAME)
 
-        wire_system_service(container=container,
-                            platform="Raspberry Pi")
-
         wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
                                        container=container)
+
+        wire_system_service(container=container,
+                            platform="Raspberry Pi")
 
         wire_user_components(config_data=config_data,
                              container=container,

@@ -6,7 +6,7 @@ from app.routing.decorators import ControllerInfo, RouteInfo
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata
 
-from inspect import Signature, Parameter, signature, getmembers, isfunction, iscoroutinefunction
+from inspect import Signature, signature, getmembers, isfunction, iscoroutinefunction
 class MultipleControllerBaseError(Exception): pass
 
 
@@ -31,28 +31,41 @@ class RouteBuilder:
 
     def _create_handler(self,
                         cls: type,
-                        abc: type,
                         method_name: str,
-                        sig_inspector: Callable[[object], Any] = signature,
                         ) -> Callable:
 
-        target_method = getattr(abc, method_name)
-        orig_signature = sig_inspector(target_method)
-        filtered_signature = self._filter_signature_params(orig_signature, ['self'])
-
-        async def handler(**kwargs):
+        # handler for async methods
+        async def async_handler(**kwargs):
             service = self.container.resolve_by_type(cls)
             func = getattr(service, method_name)
-            if iscoroutinefunction(func):
-                return await func(**kwargs)
-            else:
-                return func(**kwargs)
+            return await func(**kwargs)
 
-        handler.__signature__ = filtered_signature
-        handler.__name__ = method_name
+        # handler for sync methods
+        def sync_handler(**kwargs):
+            service = self.container.resolve_by_type(cls)
+            func = getattr(service, method_name)
+            return func(**kwargs)
+
+        # determine which handler to use
+        func = getattr(cls, method_name)
+        if iscoroutinefunction(func):
+            handler = async_handler
+        else:
+            handler = sync_handler
 
         return handler
 
+    def _forge_signature(self,
+                         abc: type,
+                         method_name: str,
+                         handler: Callable[[dict[str, Any]], Any],
+                         sig_inspector: Callable[[object], Any] = signature,
+                         ) -> None:
+        target_method = getattr(abc, method_name)
+        orig_signature = sig_inspector(target_method)
+        filtered_signature = self._filter_signature_params(orig_signature, ['self'])
+        handler.__signature__ = filtered_signature
+        handler.__name__ = method_name
 
     def _build_full_path(self,
                          prefix: str,
@@ -92,7 +105,8 @@ class RouteBuilder:
 
             route_info: RouteInfo = method._route_info
             full_path = self._build_full_path(ctrl_info.prefix, route_info.path)
-            handler = self._create_handler(cls, base_cls, name)
+            handler = self._create_handler(cls, name)
+            self._forge_signature(base_cls, name, handler)
             summary = method.__doc__ or name.replace("_", " ").capitalize()
 
             self.app.add_api_route(path=full_path,

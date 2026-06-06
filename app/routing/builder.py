@@ -58,7 +58,7 @@ class RouteBuilder:
     def _forge_signature(self,
                          abc: type,
                          method_name: str,
-                         handler: Callable[[dict[str, Any]], Any],
+                         handler: Callable[..., Any],
                          sig_inspector: Callable[[object], Any] = signature,
                          ) -> None:
         target_method = getattr(abc, method_name)

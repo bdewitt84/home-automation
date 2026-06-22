@@ -9,7 +9,6 @@ from app.bootstrap.wiring import (
     wire_infrastructure_components,
     wire_user_components,
     wire_lifecycle_management,
-    wire_system_service,
 )
 
 from app.routing.builder import RouteBuilder
@@ -48,9 +47,9 @@ async def lifespan(app: FastAPI):
 
         wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
                                        container=container)
+        scan_for_components(path='api.controllers')
 
-        wire_system_service(container=container,
-                            platform="Raspberry Pi")
+        container.validate_graph()
 
         wire_user_components(config_data=config_data,
                              container=container,

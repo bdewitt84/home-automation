@@ -126,5 +126,5 @@ class DependencyContainer:
             try:
                 self._validate(requirements, overrides)
 
-            except Exception() as e:
+            except Exception as e:
                 raise ValidationException(f"Error validating {metadata.type} with key {key}: {e}") from e

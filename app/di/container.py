@@ -2,6 +2,8 @@
 
 from typing import Callable, Any, Type, Optional
 
+from fastapi.exceptions import ValidationException
+
 from app.di.component_registry import ComponentRegistry
 from app.di.introspector import Introspector
 from app.di.registry import ComponentMetadata
@@ -110,3 +112,19 @@ class DependencyContainer:
 
         metadata = ComponentMetadata(name, type_, is_dependency=True)
         self.register_factory(name, factory, metadata)
+
+    def validate_graph(self):
+        for key, metadata in self._registry.get_all_metadata().items():
+
+            if metadata.type == self.__class__:
+                continue
+
+            cls = metadata.type
+            requirements = self._inspector.get_requirements(cls)
+            overrides = {}
+
+            try:
+                self._validate(requirements, overrides)
+
+            except Exception() as e:
+                raise ValidationException(f"Error validating {metadata.type} with key {key}: {e}") from e

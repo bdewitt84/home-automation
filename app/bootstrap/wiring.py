@@ -22,7 +22,11 @@ def wire_system_service(container: DependencyContainer,
         is_dependency=True,
     )
 
-    container.register_component(metadata.key, service_cls, metadata)
+    try:
+        container.register_component(metadata.key, service_cls, metadata)
+
+    except Exception as e:
+        raise RuntimeError(f"Critical wiring failure for system service '{service_cls.__name__}': {e}") from e
 
 
 def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
@@ -35,7 +39,7 @@ def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
                 container.register_component(metadata.key, _component_cls, metadata, overrides=None)
 
             except Exception as e:
-                raise RuntimeError(f"Critical wiring failure for {_component_cls.__name__}: {e}") from e
+                raise RuntimeError(f"Critical wiring failure for infrastructure component '{_component_cls.__name__}': {e}") from e
 
 
 def get_metadata_by_key(key: str,

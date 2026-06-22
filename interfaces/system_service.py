@@ -1,6 +1,7 @@
 # /interfaces/system_service.py
 
 from abc import ABC, abstractmethod
+from app.models.system import SystemResult
 
 
 class SystemService(ABC):
@@ -8,9 +9,9 @@ class SystemService(ABC):
         pass
 
     @abstractmethod
-    def reboot(self):
+    def reboot(self) -> SystemResult:
         raise NotImplementedError
 
     @abstractmethod
-    def shutdown(self):
+    def shutdown(self) -> SystemResult:
         raise NotImplementedError

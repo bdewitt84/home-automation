@@ -1,7 +1,8 @@
 # app/di/registry.py
 
-from typing import Dict, Type, Any
+from typing import Dict, Type, Any, Callable
 from dataclasses import dataclass
+from inspect import isfunction, signature, Signature
 
 from pydantic import BaseModel
 
@@ -26,7 +27,7 @@ class ComponentMetadata:
     lifecycle: int = 0
 
 
-COMPONENT_METADATA_REGISTRY: Dict[Type[Any], ComponentMetadata] = {}
+COMPONENT_METADATA_REGISTRY: Dict[Type[Any] | Callable, ComponentMetadata] = {}
 
 
 def component(key:str=None,
@@ -39,9 +40,17 @@ def component(key:str=None,
 
         effective_key = key if key else cls.__name__
 
+        if isfunction(cls):
+            sig = signature(cls)
+            if sig.return_annotation is Signature.empty:
+                raise TypeError(f"Function {cls.__name__} must have return annotation to be registered as a component provider")
+            effective_type = sig.return_annotation
+        else:
+            effective_type = cls
+
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
             key=effective_key,
-            type=cls,
+            type=effective_type,
             scope=Scopes.SINGLETON,
             settings_cls=settings_cls,
             is_dependency=is_dependency,

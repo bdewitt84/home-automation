@@ -30,11 +30,11 @@ def controller(prefix: str = None,
     return decorator
 
 
-def route(path: str, methods: List[str] = None, tags: List[str] = None):
+def route(path: str = None, methods: List[str] = None, tags: List[str] = None):
     def decorator(func: Callable):
         # Attach a custom attribute to the function object
         func._route_info = RouteInfo(
-            path=path,
+            path=path or func.__name__,
             methods=methods or ["GET"],
             tags=tags or []
         )

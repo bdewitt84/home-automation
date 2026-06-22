@@ -63,12 +63,13 @@ class DependencyContainer:
                       overrides: Optional[dict[str, Any]]):
 
         for cls_name, arg_type in requirements.items():
+
             if cls_name in overrides:
                 continue
 
             if not self._registry.is_dependency(arg_type):
                 raise DependencyNotFoundError(
-                    f"Cannot resolve '{cls_name}': ({arg_type.__name__})"
+                    f"Validation error: '{cls_name}': ({arg_type.__name__}) "
                     f"is not a registered dependency and no override was provided."
                 )
 

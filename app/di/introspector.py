@@ -2,9 +2,7 @@
 
 from typing import Type, Any, Optional
 from inspect import signature
-
-
-class AnnotationNotFoundError(Exception): pass
+from app.exceptions.inspection import AnnotationNotFoundError
 
 
 class Introspector:

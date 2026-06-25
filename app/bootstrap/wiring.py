@@ -3,7 +3,7 @@
 from typing import Type, Any
 
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata
+from app.models.component import ComponentMetadata
 from app.lifecycle_manager import LifeCycleManager
 from config.supported_platforms import SUPPORTED_PLATFORMS
 from interfaces import SystemService

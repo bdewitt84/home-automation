@@ -4,7 +4,7 @@ from typing import Any, Callable
 
 from app.routing.decorators import ControllerInfo, RouteInfo
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata
+from app.models.component import ComponentMetadata
 
 from inspect import Signature, signature, getmembers, isfunction, iscoroutinefunction
 class MultipleControllerBaseError(Exception): pass

@@ -6,7 +6,7 @@ from fastapi.exceptions import ValidationException
 
 from app.di.component_registry import ComponentRegistry
 from app.di.introspector import Introspector
-from app.di.registry import ComponentMetadata
+from app.models.component import ComponentMetadata
 
 
 class DependencyNotFoundError(Exception): pass

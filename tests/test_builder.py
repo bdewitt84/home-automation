@@ -6,7 +6,7 @@ import inspect
 from abc import ABC, abstractmethod
 
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata, Scopes
+from app.models.component import Scopes, ComponentMetadata
 from app.routing.builder import RouteBuilder
 from app.routing.decorators import controller, route
 

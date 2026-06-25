@@ -3,7 +3,8 @@
 import pytest
 
 import app.di.registry
-from app.di.registry import component, ComponentMetadata, COMPONENT_METADATA_REGISTRY, clear_registry
+from app.di.registry import component, COMPONENT_METADATA_REGISTRY, clear_registry
+from app.models.component import ComponentMetadata
 
 
 @pytest.fixture(autouse=True)

@@ -5,7 +5,7 @@ from typing import (
     Optional
 )
 
-from app.di.registry import ComponentMetadata
+from app.models.component import ComponentMetadata
 
 
 class DuplicateKeyError(Exception):

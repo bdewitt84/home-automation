@@ -6,7 +6,8 @@ from unittest.mock import Mock
 
 from app.di.component_registry import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
 from app.di.container import DependencyContainer, DependencyNotFoundError
-from app.di.registry import ComponentMetadata, component
+from app.di.registry import component
+from app.models.component import ComponentMetadata
 
 
 class MockDependency: pass

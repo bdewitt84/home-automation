@@ -1,31 +1,13 @@
 # app/di/registry.py
 
 from typing import Dict, Type, Any, Callable
-from dataclasses import dataclass
 from inspect import isfunction, signature, Signature
 
-from pydantic import BaseModel
+from app.models.component import Scopes, ComponentMetadata
 
 
 SERVICE_CLS_INDEX = 0
 METADATA_INDEX = 1
-
-
-class Scopes:
-    SINGLETON = "SINGLETON"
-    TRANSIENT = "TRANSIENT"
-    # REQUEST = "REQUEST"
-
-
-@dataclass
-class ComponentMetadata:
-    key: str
-    type: Type[Any]
-    scope: str = Scopes.SINGLETON
-    settings_cls: Type[BaseModel] | None = None
-    is_dependency: bool = False
-    lifecycle: int = 0
-
 
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any] | Callable, ComponentMetadata] = {}
 

@@ -1,6 +1,6 @@
 # ./app/di/introspector.py
 
-from typing import Type, Any, Optional
+from typing import Type, Any, Callable
 from inspect import signature
 from app.exceptions.inspection import AnnotationNotFoundError
 
@@ -10,9 +10,10 @@ class Introspector:
         pass
 
     def get_requirements(self,
-                                      cls: Type[Any],
-                                      ) -> dict[str, Type]:
-        sig = signature(cls)
+                         target: Type[Any] | Callable,
+                         ) -> dict[str, Type]:
+
+        sig = signature(target)
         requirements = {}
 
         for name, param in sig.parameters.items():

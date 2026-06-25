@@ -4,6 +4,7 @@ from typing import Dict, Type, Any, Callable
 from inspect import isfunction, signature, Signature
 
 from app.models.component import Scopes, ComponentMetadata
+from app.di.introspector import Introspector
 
 
 SERVICE_CLS_INDEX = 0
@@ -18,7 +19,7 @@ def component(key:str=None,
               lifecycle: int=0
               ) -> Any:
 
-    def decorator(cls):
+    def decorator(cls: Type[Any] | Callable):
 
         effective_key = key if key else cls.__name__
 
@@ -30,10 +31,13 @@ def component(key:str=None,
         else:
             effective_type = cls
 
+        requirements = Introspector().get_requirements(cls)
+
         COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
             key=effective_key,
             type=effective_type,
             scope=Scopes.SINGLETON,
+            requirements=requirements,
             settings_cls=settings_cls,
             is_dependency=is_dependency,
             lifecycle=lifecycle,

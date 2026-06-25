@@ -37,11 +37,15 @@ def test_register_component_with_container():
         key=test_key,
         lifecycle=test_lifecycle)
     class TestComponent:
-        pass
+        def __init__(self, int_param: int, str_param: str):
+            pass
 
     assert TestComponent in COMPONENT_METADATA_REGISTRY
     metadata: ComponentMetadata = COMPONENT_METADATA_REGISTRY[TestComponent]
     assert metadata.key == test_key
     assert metadata.lifecycle == test_lifecycle
+    assert metadata.requirements["int_param"] == int
+    assert metadata.requirements["str_param"] == str
+    assert "self" not in metadata.requirements
 
     clear_registry()

@@ -17,10 +17,10 @@ class MetadataNotFoundError(GraphValidationError): pass
 
 class DependencyContainer:
     def __init__(self,
-                 registry: Optional[ComponentRegistry]=None,
-                 inspector: Optional[Introspector]=None):
+                 registry: Optional[ComponentRegistry]=None,):
+
         self._registry = registry or ComponentRegistry()
-        self._inspector = inspector or Introspector()
+
 
     def register_factory(self,
                          key: str,
@@ -111,9 +111,7 @@ class DependencyContainer:
                            ) -> None:
 
         overrides = overrides or {}
-
-        requirements = self._inspector.get_requirements(cls)
-        # self._validate(requirements, overrides)
+        requirements = metadata.requirements
         factory = self._create_factory(cls, requirements, overrides)
         self.register_factory(key, factory, metadata)
 
@@ -132,8 +130,7 @@ class DependencyContainer:
             if metadata.type == self.__class__:
                 continue
 
-            cls = metadata.type
-            requirements = self._inspector.get_requirements(cls)
+            requirements = metadata.requirements
             overrides = {}
 
             try:

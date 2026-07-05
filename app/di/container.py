@@ -106,9 +106,12 @@ class DependencyContainer:
     def register_component(self,
                            key: str,
                            cls: Type[Any],
-                           metadata: ComponentMetadata = None,
+                           metadata: ComponentMetadata,
                            overrides: Optional[dict[str, Any]] = None
                            ) -> None:
+        if not isinstance(metadata, ComponentMetadata):
+            raise ValueError(f"Cannot register component '{key}': "
+                             f"Component metadata must be an instance of 'ComponentMetadata'.")
 
         overrides = overrides or {}
         requirements = metadata.requirements

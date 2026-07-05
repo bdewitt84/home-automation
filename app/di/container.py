@@ -6,10 +6,13 @@ from fastapi.exceptions import ValidationException
 
 from app.di.component_registry import ComponentRegistry
 from app.di.introspector import Introspector
+from app.exceptions.di import CycleDetectedError, DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
 from app.models.component import ComponentMetadata
 
 
-class DependencyNotFoundError(Exception): pass
+class GraphValidationError(Exception): pass
+
+class MetadataNotFoundError(GraphValidationError): pass
 
 
 class DependencyContainer:

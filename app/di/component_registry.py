@@ -5,23 +5,8 @@ from typing import (
     Optional
 )
 
+from app.exceptions.di import DuplicateKeyError, FactoryNotFoundError, MetadataNotFoundError
 from app.models.component import ComponentMetadata
-
-
-class DuplicateKeyError(Exception):
-    pass
-
-
-class FactoryNotFoundError(Exception):
-    pass
-
-
-class TypeNotFoundError(Exception):
-    pass
-
-
-class MetadataNotFoundError(Exception):
-    pass
 
 
 class ComponentRegistry:

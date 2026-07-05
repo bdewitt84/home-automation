@@ -5,7 +5,6 @@ from typing import Callable, Any, Type, Optional
 from fastapi.exceptions import ValidationException
 
 from app.di.component_registry import ComponentRegistry
-from app.di.introspector import Introspector
 from app.exceptions.di import CycleDetectedError, DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
 from app.models.component import ComponentMetadata
 

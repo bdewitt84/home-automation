@@ -3,17 +3,21 @@
 import pytest
 from unittest.mock import Mock
 
-from app.di.component_registry import ComponentRegistry, TypeNotFoundError, DuplicateKeyError, FactoryNotFoundError
+from app.di.component_registry import ComponentRegistry
+from app.exceptions.di import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
+from app.models.component import ComponentMetadata
 
 
-def _get_mock_component_data():
+def _get_mock_component_data(key: str=None, is_dependency: bool=False):
     # TODO: Consider taking arguments for key, possibly just stuffing it in metadata
     registry = ComponentRegistry()
     mock_factory = Mock()
-    mock_metadata = Mock()
     class MockComponent: pass
-    mock_metadata.type = MockComponent
-    mock_metadata.is_dependency = False
+    mock_metadata = ComponentMetadata(
+        key = key or MockComponent.__name__,
+        type = MockComponent,
+        is_dependency = is_dependency,
+    )
 
     return registry, mock_factory, mock_metadata
 
@@ -31,16 +35,15 @@ def test_add_component_is_dependency():
 
 
 def test_add_component_is_not_dependency():
-    registry, mock_factory, mock_metadata = _get_mock_component_data()
-    mock_type = mock_metadata.type
+
     mock_key = 'test'
+    registry, mock_factory, mock_metadata = _get_mock_component_data(key=mock_key)
+    mock_type = mock_metadata.type
 
     registry.add_component(mock_key, mock_factory, mock_metadata)
 
-    with pytest.raises(TypeNotFoundError) as e:
-        registry.get_key_by_type(mock_type)
-
-    assert 'not registered' in str(e.value).lower()
+    assert registry.is_dependency(mock_type) is False
+    assert registry.get_key_by_type(mock_type) is None
 
 
 def test_add_component_duplicate_key():
@@ -96,11 +99,9 @@ def test_get_factory_not_registered():
     registry = ComponentRegistry()
     mock_key = 'test'
 
-    with pytest.raises(FactoryNotFoundError) as e:
-        registry.get_factory(mock_key)
+    result = registry.get_factory(mock_key)
 
-    assert 'not registered' in str(e.value).lower()
-    assert mock_key in str(e.value).lower()
+    assert result is None
 
 
 def test_get_metadata():
@@ -129,11 +130,7 @@ def test_get_key_by_type_not_registered():
     registry = ComponentRegistry()
     class MockComponent: pass
 
-    with pytest.raises(TypeNotFoundError) as e:
-        registry.get_key_by_type(MockComponent)
-
-    assert MockComponent.__name__ in str(e.value)
-    assert 'not registered' in str(e.value).lower()
+    assert registry.get_key_by_type(MockComponent) is None
 
 
 def test_get_all_metadata():

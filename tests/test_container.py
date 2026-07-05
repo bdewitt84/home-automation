@@ -1,12 +1,13 @@
 # tests/test_container.py
+from typing import Type, Any
 
 import pytest
 
 from unittest.mock import Mock
 
-from app.di.component_registry import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
-from app.di.container import DependencyContainer, DependencyNotFoundError
-from app.di.registry import component
+from app.exceptions.di import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError, CycleDetectedError, \
+    DependencyNotFoundError
+from app.di.container import DependencyContainer, MetadataNotFoundError
 from app.models.component import ComponentMetadata
 
 
@@ -24,10 +25,11 @@ def metadata():
         is_dependency=False,
     )
 
-def generate_metadata(cls, is_dependency=False):
+def generate_metadata(cls: Type, requirements: dict[str, Type[Any]]=None , is_dependency=False):
     return ComponentMetadata(
         key=cls.__name__,
         type=cls,
+        requirements=requirements or {},
         is_dependency=is_dependency,
     )
 
@@ -81,25 +83,33 @@ def test_resolve_success_flat(container, metadata):
 
 
 def test_resolve_success_recursive(container):
-    class DependencyA: pass
-    metadata_a = generate_metadata(DependencyA, True)
-    class DependencyB: pass
-    metadata_b = generate_metadata(DependencyB, True)
-    class MockComponent:
-        def __init__(self, dep_a:DependencyA, dep_b:DependencyB):
-            self.dep_a = dep_a
+
+    class DependencyC: pass
+
+    class DependencyB:
+        def __init__(self, dep_c: DependencyC):
+            self.dep_c = dep_c
+
+    class DependencyA:
+        def __init__(self, dep_b:DependencyB):
             self.dep_b = dep_b
-    metadata_comp = generate_metadata(MockComponent)
 
-    container.register_component(metadata_a.key, metadata_a.type, metadata_a)
+    requirements_b = {"dep_c": DependencyC}
+    requirements_a = {"dep_b": DependencyB}
+
+    metadata_c = generate_metadata(DependencyC, {}, is_dependency=True)
+    metadata_b = generate_metadata(DependencyB, requirements_b, is_dependency=True)
+    metadata_a = generate_metadata(DependencyA, requirements_a, is_dependency=True)
+
+    container.register_component(metadata_c.key, metadata_c.type, metadata_c)
     container.register_component(metadata_b.key, metadata_b.type, metadata_b)
-    container.register_component(metadata_comp.key, metadata_comp.type, metadata_comp)
+    container.register_component(metadata_a.key, metadata_a.type, metadata_a)
 
-    result: MockComponent = container.resolve(metadata_comp.key)
+    result: DependencyA = container.resolve(metadata_a.key)
 
-    assert isinstance(result, MockComponent)
-    assert isinstance(result.dep_a, DependencyA)
+    assert isinstance(result, DependencyA)
     assert isinstance(result.dep_b, DependencyB)
+    assert isinstance(result.dep_b.dep_c, DependencyC)
 
 
 def test_resolve_not_registered(container):
@@ -280,10 +290,7 @@ def test_register_component(container):
     container.register_component(
         "MockComponent",
         MockComponent,
-        ComponentMetadata(
-            key="MockComponent",
-            type=MockComponent,
-        ),
+        generate_metadata(MockComponent),
         {}
     )
 
@@ -291,6 +298,15 @@ def test_register_component(container):
 
     assert isinstance(result, MockComponent)
 
+def test_register_component_invalid_metadata(container):
+    class MockComponent: pass
+
+    with pytest.raises(ValueError) as e:
+        container.register_component(
+            key='MockComponent',
+            cls=MockComponent,
+            metadata='invalid_metadata', # type: ignore
+        )
 
 def test_register_self(container):
     container.register_self()
@@ -298,3 +314,94 @@ def test_register_self(container):
     result = container.resolve(container.__class__.__name__)
 
     assert isinstance(result, DependencyContainer)
+
+
+def test_validate_graph_dfs_no_cycle(container):
+    """
+            D
+          /
+        B
+      /   \
+    A       E
+      \   /
+        C
+
+    :param container:
+    :return:
+    """
+    container.register_self()
+
+    class DependencyE: pass
+    class DependencyD: pass
+    class DependencyC:
+        def __init__(self, dep_e: DependencyE):
+            self.dep_e = dep_e
+    class DependencyB:
+        def __init__(self, dep_d: DependencyD, dep_e: DependencyE):
+            self.dep_d = dep_d
+            self.dep_e = dep_e
+    class DependencyA:
+        def __init__(self, dep_b: DependencyB, dep_c: DependencyC):
+            self.dep_b = dep_b
+            self.dep_c = dep_c
+
+    req_b: dict[str, Type] = {"dep_d": DependencyD, "dep_e": DependencyE,}
+    req_c: dict[str, Type] = {"dep_e": DependencyE,}
+    req_a: dict[str, Type] = {"dep_b": DependencyB, "dep_c": DependencyC,}
+
+    data: list[tuple[Type, dict[str,Type]]] = [
+        (DependencyE, None),
+        (DependencyD, None),
+        (DependencyC, req_c),
+        (DependencyB, req_b),
+        (DependencyA, req_a),
+    ]
+
+    for cls, req in data:
+        meta = generate_metadata(cls=cls, requirements=req, is_dependency=True,)
+        container.register_component(key=cls.__name__, cls=cls, metadata=meta)
+
+    container.validate_graph_dfs()
+    pass # did not raise
+
+
+def test_validate_graph_dfs_with_cycle(container):
+    container.register_self()
+    class DependencyC: pass
+    class DependencyB: pass
+    class DependencyA: pass
+
+    req_c: dict[str, Type] = {"dep_a": DependencyA,}
+    req_b: dict[str, Type] = {"dep_c": DependencyC,}
+    req_a: dict[str, Type] = {"dep_b": DependencyB,}
+
+    data: [tuple[Type, dict[str,Type]]] = [
+        (DependencyC, req_c),
+        (DependencyB, req_b),
+        (DependencyA, req_a),
+    ]
+
+    for cls, req in data:
+        meta = generate_metadata(cls=cls, requirements=req, is_dependency=True,)
+        container.register_component(key=cls.__name__, cls=cls, metadata=meta)
+
+    with pytest.raises(CycleDetectedError) as e:
+        container.validate_graph_dfs()
+
+
+def test_validate_graph_dfs_dependency_not_found(container):
+    container.register_self()
+
+    class DependencyB: pass
+    class DependencyA: pass
+
+    req_b: dict[str, Type] = {"dep_a": DependencyA,}
+    req_a: dict[str, Type] = {}
+
+    meta_b = generate_metadata(cls=DependencyB, requirements=req_b, is_dependency=True)
+    meta_a = None
+
+    container.register_component(key=DependencyB.__name__, cls=DependencyB, metadata=meta_b,)
+
+    with pytest.raises(DependencyNotFoundError) as e:
+        container.validate_graph_dfs()

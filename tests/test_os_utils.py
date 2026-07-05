@@ -1,13 +1,22 @@
-# tests/test_core.py
+# tests/test_os_utils.py
 
-from core import os_utils
-import subprocess
+import pytest
 from unittest.mock import patch
+import subprocess
+
+from app.exceptions.system import SystemOperationError
+from components.infrastructure.os_utils import OSUtils
 
 
-MOCK_SUBPROCESS_RUN_PATH = "core.os_utils.subprocess.run"
+MOCK_SUBPROCESS_RUN_PATH = "components.infrastructure.os_utils.subprocess.run"
 
-def test_execute_shell_command_success():
+
+@pytest.fixture
+def os_utils():
+    return OSUtils()
+
+
+def test_execute_shell_command_success(os_utils):
     """
     Tests that the execute_shell_command utility function correctly
     calls subprocess.run and returns the expected elements of the
@@ -25,12 +34,12 @@ def test_execute_shell_command_success():
     with patch(MOCK_SUBPROCESS_RUN_PATH, return_value=mock_completed_process) as mock_run:
         result = os_utils.execute_shell_command("test_command")
 
-        assert result["status"] == "success"
-        assert result["stdout"] == "test_stdout" # checks stripping
+        assert result.success == True
+        assert result.output == "test_stdout" # checks stripping
         mock_run.assert_called_once()
 
 
-def test_execute_shell_command_failure():
+def test_execute_shell_command_failure(os_utils):
     """
     Tests that the execute_shell_command utility handles and returns
     errors from the OS
@@ -45,18 +54,10 @@ def test_execute_shell_command_failure():
     )
 
     with patch(MOCK_SUBPROCESS_RUN_PATH, side_effect=mock_process_error) as mock_run:
-        result = os_utils.execute_shell_command(cmd)
+        with pytest.raises(SystemOperationError) as e:
+            os_utils.execute_shell_command(cmd)
 
-        assert result["status"] == "error"
-        assert 'stderr' in result
-        assert 'returncode' != 0
-        mock_run.assert_called_once()
+        assert "bad_command" in str(e)
+        assert "exit status 1" in str(e)
 
-
-    """
-    WHEN WE GET BACK
-    finish writing this test... DONE
-    write commits.
-    pull on server.
-    smoke test.
-    """
+    mock_run.assert_called_once()

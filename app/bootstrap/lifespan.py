@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
                                        container=container)
         scan_for_components(path='api.controllers')
 
-        container.validate_graph()
+        container.validate_graph_dfs()
 
         wire_user_components(config_data=config_data,
                              container=container,

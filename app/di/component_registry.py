@@ -50,10 +50,7 @@ class ComponentRegistry:
 
     def get_factory(self, key: str) -> Optional[Callable]:
         """Retrieves the factory recipe for a key."""
-        try:
-            return self._factories[key]
-        except KeyError:
-            raise FactoryNotFoundError(f"Factory not registered for key '{key}'")
+        return self._factories.get(key, None)
 
     def get_metadata(self, key: str) -> Optional[ComponentMetadata]:
         """Retrieves the metadata 'ID card' for a key."""
@@ -61,10 +58,7 @@ class ComponentRegistry:
 
     def get_key_by_type(self, cls: Type) -> Optional[str]:
         """The 'Type-to-Key' bridge. Finds the key associated with a class type."""
-        try:
-            return self._type_to_key[cls]
-        except KeyError:
-            raise TypeNotFoundError(f"Type '{cls.__name__}' is not registered as a dependency")
+        return self._type_to_key.get(cls, None)
 
     def get_all_metadata(self) -> dict[str, ComponentMetadata]:
         """Returns the full metadata dictionary for scanning/discovery."""

@@ -32,14 +32,24 @@ class DependencyContainer:
 
     def resolve(self, key: str) -> Any:
         instance = self._registry.get_singleton(key)
+
         if instance is None:
             factory = self._registry.get_factory(key)
+
+            if factory is None:
+                raise FactoryNotFoundError(f"Cannot resolve key '{key}': Factory is not registered")
+
             instance = factory()
             self._registry.store_singleton(key, instance)
+
         return instance
 
     def resolve_by_type(self, target:Type[Any]) -> Any:
         key = self._registry.get_key_by_type(target)
+
+        if key is None:
+            raise TypeNotFoundError(f"Cannot resolve for type '{target.__name__}': Type is not registered")
+
         return self.resolve(key)
 
     def get_metadata(self, key:str) -> Any:

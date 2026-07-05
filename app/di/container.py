@@ -140,3 +140,34 @@ class DependencyContainer:
 
             except Exception as e:
                 raise ValidationException(f"Error validating {metadata.type} with key {key}: {e}") from e
+
+
+    def validate_graph_dfs_rec(self, cur: str, path: list, safe: set):
+        if cur in safe:
+            return
+        if cur in path:
+            raise CycleDetectedError(f"Cycle detected validating {cur}: {' -> '.join(path + [cur])}")
+
+        metadata = self._registry.get_metadata(cur)
+
+        if not self._registry.is_dependency(metadata.type):
+            raise DependencyNotFoundError(f"Dependency '{cur}' is not a registered dependency")
+
+        path.append(cur)
+
+        for _, req_type in metadata.requirements.items():
+            req_key = self._registry.get_key_by_type(req_type)
+            if not req_key:
+                raise DependencyNotFoundError(f"Component {cur} requires Dependency '{req_type.__name__}', "
+                                              f"but it has no registered key")
+            self.validate_graph_dfs_rec(req_key, path, safe)
+
+        safe.add(cur)
+        path.pop()
+
+
+    def validate_graph_dfs(self):
+        path: list[str] = []
+        safe: set = {self.__class__.__name__}
+        for key in self._registry.get_all_metadata().keys():
+            self.validate_graph_dfs_rec(key, path, safe)

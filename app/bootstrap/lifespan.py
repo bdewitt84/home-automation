@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from app.bootstrap.scanner import scan_for_components
+from app.bootstrap.scanner import scan_for_components, Scanner
 
 from app.bootstrap.wiring import (
     wire_infrastructure_components,
@@ -26,6 +26,7 @@ from app.di.registry import COMPONENT_METADATA_REGISTRY
 
 #todo: place these in app settings?
 SERVICE_PACKAGE_NAME = 'components'
+CONTROLLER_PACKAGE_NAME = 'api.v1.controllers'
 CONFIG_FILE_PATH = './config/config.json'
 
 
@@ -38,16 +39,20 @@ async def lifespan(app: FastAPI):
         container = init_dependency_container(app=app)
         container.register_self()
         manager = init_lifecycle_manager(app=app)
+        scanner = Scanner()
 
         # --- Load Config ---
         config_data = load_config_from_disk(path=CONFIG_FILE_PATH)
 
         # --- Scan and Wire Components ---
-        scan_for_components(path=SERVICE_PACKAGE_NAME)
+        scanner.scan_packages([
+            SERVICE_PACKAGE_NAME,
+            CONTROLLER_PACKAGE_NAME,
+        ])
+        scanner.import_scanned_modules()
 
         wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
                                        container=container)
-        scan_for_components(path='api.controllers')
 
         container.validate_graph_dfs()
 

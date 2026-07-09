@@ -6,7 +6,7 @@ import textwrap
 import importlib
 
 
-from app.bootstrap.scanner import scan_for_components
+from app.bootstrap.scanner import Scanner
 from app.bootstrap.wiring import wire_infrastructure_components
 from app.di.container import DependencyContainer
 from app.di.registry import COMPONENT_METADATA_REGISTRY
@@ -19,6 +19,7 @@ def container():
     return container
 
 
+@pytest.mark.integration
 def test_discovery_and_resolution(container, tmp_path):
 
     comp_dir = tmp_path / "test_components"
@@ -38,9 +39,11 @@ def test_discovery_and_resolution(container, tmp_path):
 
     sys.path.insert(0, str(tmp_path))
     importlib.invalidate_caches()
+    scanner = Scanner()
 
     try:
-        scan_for_components('test_components')
+        scanner.scan_packages(['test_components'])
+        scanner.import_scanned_modules()
         wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
                                        container=container)
 

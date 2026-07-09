@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from app.bootstrap.scanner import scan_for_components, Scanner
+from app.bootstrap.scanner import Scanner
 
 from app.bootstrap.wiring import (
     wire_infrastructure_components,

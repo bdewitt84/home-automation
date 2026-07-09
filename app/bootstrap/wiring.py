@@ -43,8 +43,8 @@ def wire_infrastructure_components(registry: dict[Type[Any], ComponentMetadata],
 
 
 def get_metadata_by_key(key: str,
-    registry: dict[Type[Any], ComponentMetadata],
-    )-> ComponentMetadata | None:
+                        registry: dict[Type[Any], ComponentMetadata],
+                        )-> ComponentMetadata | None:
 
     for metadata in registry.values():
         if metadata.key == key:

@@ -1,6 +1,6 @@
 # app/di/registry.py
 
-from typing import Dict, Type, Any, Callable
+from typing import Dict, Type, Any, Callable, TypeAlias
 from inspect import isfunction, signature, Signature
 
 from app.models.component import Scopes, ComponentMetadata
@@ -9,6 +9,8 @@ from app.di.introspector import Introspector
 
 SERVICE_CLS_INDEX = 0
 METADATA_INDEX = 1
+
+ComponentRegistry: TypeAlias = Dict[Type[Any] | Callable, ComponentMetadata]
 
 COMPONENT_METADATA_REGISTRY: Dict[Type[Any] | Callable, ComponentMetadata] = {}
 

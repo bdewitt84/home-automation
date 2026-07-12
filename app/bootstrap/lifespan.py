@@ -10,6 +10,7 @@ from app.bootstrap.wiring import (
     wire_user_components,
     wire_lifecycle_management,
 )
+from app.di.builder import ContainerBuilder
 
 from app.routing.builder import RouteBuilder
 
@@ -36,8 +37,6 @@ async def lifespan(app: FastAPI):
     # --- Bootstrap phase ---
     try:
         # --- Init Core ---
-        container = init_dependency_container(app=app)
-        container.register_self()
         manager = init_lifecycle_manager(app=app)
         scanner = Scanner()
 
@@ -51,14 +50,9 @@ async def lifespan(app: FastAPI):
         ])
         scanner.import_scanned_modules()
 
-        wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
-                                       container=container)
-
-        container.validate_graph_dfs()
-
-        wire_user_components(config_data=config_data,
-                             container=container,
-                             registry=COMPONENT_METADATA_REGISTRY)
+        container_builder = ContainerBuilder(registry=COMPONENT_METADATA_REGISTRY,
+                                             config=config_data,)
+        container = container_builder.build()
 
         wire_lifecycle_management(container=container,
                                   manager=manager)

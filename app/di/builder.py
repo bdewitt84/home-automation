@@ -12,10 +12,10 @@ class ContainerBuilder:
 
     def build(self) -> DependencyContainer:
         self._container = DependencyContainer()
+        self._container.register_self()
         self._wire_infrastructure()
         self._wire_user_components()
         self._verify_dependency_graph()
-        self._container.register_self()
         return self._container
 
     def _wire_infrastructure(self) -> None:

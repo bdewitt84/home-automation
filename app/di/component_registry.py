@@ -15,10 +15,12 @@ class ComponentRegistry:
         self._singletons: dict[str, Any] = {}
         self._metadata: dict[str, ComponentMetadata] = {}
         self._type_to_key: dict[Type, str] = {}
+        self._overrides: dict[str, dict[str, Any]] = {} # key:[key, type]
 
     def add_component(self,
                       key: str,
                       factory: Callable,
+                      overrides: [dict[str, Any]],
                       metadata: ComponentMetadata,
                       ) -> None:
         """
@@ -36,6 +38,7 @@ class ComponentRegistry:
             raise DuplicateKeyError(f"Type '{metadata.type.__name__}' is already mapped to a key")
 
         self._factories[key] = factory
+        self._overrides[key] = overrides
         self._metadata[key] = metadata
         if metadata.is_dependency:
             self._type_to_key[metadata.type] = key
@@ -82,3 +85,6 @@ class ComponentRegistry:
             if metadata.lifecycle > 0
         ]
         return sorted(keys, key=lambda k: self.get_metadata(k).lifecycle)
+
+    def get_overrides(self, key: str) -> dict[str, Any]:
+        return self._overrides.get(key, {})

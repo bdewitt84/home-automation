@@ -24,10 +24,11 @@ class DependencyContainer:
     def register_factory(self,
                          key: str,
                          factory: Callable[[], Any],
+                         overrides: dict[str, Any],
                          metadata: ComponentMetadata = None,
                          ) -> None:
 
-        self._registry.add_component(key, factory, metadata)
+        self._registry.add_component(key, factory, overrides, metadata)
 
     def resolve(self, key: str) -> Any:
         instance = self._registry.get_singleton(key)
@@ -115,7 +116,7 @@ class DependencyContainer:
         overrides = overrides or {}
         requirements = metadata.requirements
         factory = self._create_factory(cls, requirements, overrides)
-        self.register_factory(key, factory, metadata)
+        self.register_factory(key, factory, overrides, metadata)
 
     def register_self(self):
 
@@ -124,7 +125,7 @@ class DependencyContainer:
         factory = lambda: self
 
         metadata = ComponentMetadata(name, type_, is_dependency=True)
-        self.register_factory(name, factory, metadata)
+        self.register_factory(name, factory, {}, metadata)
 
     def validate_graph(self):
         for key, metadata in self._registry.get_all_metadata().items():
@@ -172,3 +173,6 @@ class DependencyContainer:
         safe: set = {self.__class__.__name__}
         for key in self._registry.get_all_metadata().keys():
             self._validate_graph_dfs_rec(key, path, safe)
+
+    def get_overrides(self, key: str) -> dict[str, Any]:
+        return self._registry.get_overrides(key)

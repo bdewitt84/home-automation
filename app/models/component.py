@@ -12,7 +12,7 @@ class Scopes:
     # REQUEST = "REQUEST"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ComponentMetadata:
     key: str
     type: Type[Any]

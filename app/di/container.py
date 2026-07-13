@@ -156,8 +156,10 @@ class DependencyContainer:
             raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
 
         path.append(cur)
-
-        for _, req_type in metadata.requirements.items():
+        cur_overrides = self._registry.get_overrides(cur)
+        for req_name, req_type in metadata.requirements.items():
+            if req_name in cur_overrides:
+                continue
             req_key = self._registry.get_key_by_type(req_type)
             if not req_key:
                 raise DependencyNotFoundError(f"Component {cur} requires Dependency '{req_type.__name__}', "

@@ -9,7 +9,7 @@ import importlib
 from app.bootstrap.scanner import Scanner
 from app.bootstrap.wiring import wire_infrastructure_components
 from app.di.container import DependencyContainer
-from app.di.registry import COMPONENT_METADATA_REGISTRY
+from app.di.registry import METADATA_REGISTRY
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def test_discovery_and_resolution(container, tmp_path):
     try:
         scanner.scan_packages(['test_components'])
         scanner.import_scanned_modules()
-        wire_infrastructure_components(registry=COMPONENT_METADATA_REGISTRY,
+        wire_infrastructure_components(registry=METADATA_REGISTRY,
                                        container=container)
 
         result = container.resolve('TestComponent')
@@ -52,4 +52,4 @@ def test_discovery_and_resolution(container, tmp_path):
 
     finally:
         sys.path.pop(0)
-        COMPONENT_METADATA_REGISTRY.clear()
+        METADATA_REGISTRY.clear()

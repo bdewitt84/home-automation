@@ -3,7 +3,7 @@
 import pytest
 
 import app.di.registry
-from app.di.registry import component, COMPONENT_METADATA_REGISTRY, clear_registry
+from app.di.registry import component, METADATA_REGISTRY, clear_registry
 from app.models.component import ComponentMetadata
 
 
@@ -21,11 +21,11 @@ def test_clear_registry():
         type=MockComponent,
     )
 
-    app.di.registry.COMPONENT_METADATA_REGISTRY.update({MockComponent: mock_metadata})
+    app.di.registry.METADATA_REGISTRY.update({MockComponent: mock_metadata})
 
     clear_registry()
 
-    assert len(COMPONENT_METADATA_REGISTRY.items()) == 0
+    assert len(METADATA_REGISTRY.items()) == 0
 
 
 def test_register_component_with_container():
@@ -40,8 +40,8 @@ def test_register_component_with_container():
         def __init__(self, int_param: int, str_param: str):
             pass
 
-    assert TestComponent in COMPONENT_METADATA_REGISTRY
-    metadata: ComponentMetadata = COMPONENT_METADATA_REGISTRY[TestComponent]
+    assert TestComponent in METADATA_REGISTRY
+    metadata: ComponentMetadata = METADATA_REGISTRY[TestComponent]
     assert metadata.key == test_key
     assert metadata.lifecycle == test_lifecycle
     assert metadata.requirements["int_param"] == int

@@ -10,9 +10,9 @@ from app.di.introspector import Introspector
 SERVICE_CLS_INDEX = 0
 METADATA_INDEX = 1
 
-ComponentRegistry: TypeAlias = Dict[Type[Any] | Callable, ComponentMetadata]
+MetadataRegistry: TypeAlias = Dict[Type[Any] | Callable, ComponentMetadata]
 
-COMPONENT_METADATA_REGISTRY: Dict[Type[Any] | Callable, ComponentMetadata] = {}
+METADATA_REGISTRY: MetadataRegistry = {}
 
 
 def component(key:str=None,
@@ -35,7 +35,7 @@ def component(key:str=None,
 
         requirements = Introspector().get_requirements(cls)
 
-        COMPONENT_METADATA_REGISTRY[cls] = ComponentMetadata(
+        METADATA_REGISTRY[cls] = ComponentMetadata(
             key=effective_key,
             type=effective_type,
             scope=Scopes.SINGLETON,
@@ -51,4 +51,4 @@ def component(key:str=None,
 
 
 def clear_registry():
-    COMPONENT_METADATA_REGISTRY.clear()
+    METADATA_REGISTRY.clear()

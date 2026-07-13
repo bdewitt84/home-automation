@@ -22,7 +22,7 @@ from app.bootstrap.state import (
 )
 
 from app.bootstrap.lifecycle import startup_state, shutdown_state
-from app.di.registry import COMPONENT_METADATA_REGISTRY
+from app.di.registry import METADATA_REGISTRY
 
 
 #todo: place these in app settings?
@@ -50,8 +50,8 @@ async def lifespan(app: FastAPI):
         ])
         scanner.import_scanned_modules()
 
-        container_builder = ContainerBuilder(registry=COMPONENT_METADATA_REGISTRY,
-                                             config=config_data,)
+        container_builder = ContainerBuilder(registry=METADATA_REGISTRY,
+                                             config=config_data, )
         container = container_builder.build()
 
         wire_lifecycle_management(container=container,
@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
 
         builder = RouteBuilder(app=app,
                                container=container)
-        builder.build_api_routes(registry=COMPONENT_METADATA_REGISTRY)
+        builder.build_api_routes(registry=METADATA_REGISTRY)
 
         await startup_state(app=app)
 

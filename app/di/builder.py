@@ -1,12 +1,12 @@
 # ./app/di/builder.py
 
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata, ComponentRegistry
+from app.di.registry import ComponentMetadata, MetadataRegistry
 
 
 class ContainerBuilder:
-    def __init__(self, registry: ComponentRegistry, config: dict):
-        self._registry: ComponentRegistry = registry
+    def __init__(self, registry: MetadataRegistry, config: dict):
+        self._registry: MetadataRegistry = registry
         self._config = config
         self._container: DependencyContainer | None = None
 

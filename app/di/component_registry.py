@@ -6,21 +6,19 @@ from typing import (
 )
 
 from app.exceptions.di import DuplicateKeyError, MetadataNotFoundError
-from app.models.component import ComponentMetadata
+from app.models.component import ComponentMetadata, ComponentRegistration
 
 
 class ComponentRegistry:
     def __init__(self):
-        self._factories: dict[str, Callable] = {}
         self._singletons: dict[str, Any] = {}
-        self._metadata: dict[str, ComponentMetadata] = {}
         self._type_to_key: dict[Type, str] = {}
-        self._overrides: dict[str, dict[str, Any]] = {} # key:[key, type]
+        self._component_records: dict[str, ComponentRegistration] = {}
 
     def add_component(self,
                       key: str,
                       factory: Callable,
-                      overrides: [dict[str, Any]],
+                      overrides: dict[str, Any],
                       metadata: ComponentMetadata,
                       ) -> None:
         """
@@ -28,7 +26,7 @@ class ComponentRegistry:
         If is_dependency is True, it also maps the class type to this key.
         """
 
-        if key in self._factories:
+        if key in self._component_records:
             raise DuplicateKeyError(f"Key '{key}' is already registered")
 
         if metadata is None:
@@ -37,9 +35,13 @@ class ComponentRegistry:
         if metadata.is_dependency and metadata.type in self._type_to_key:
             raise DuplicateKeyError(f"Type '{metadata.type.__name__}' is already mapped to a key")
 
-        self._factories[key] = factory
-        self._overrides[key] = overrides
-        self._metadata[key] = metadata
+        new_record = ComponentRegistration(
+            factory=factory,
+            metadata=metadata,
+            overrides=overrides,
+        )
+        self._component_records[key] = new_record
+
         if metadata.is_dependency:
             self._type_to_key[metadata.type] = key
 
@@ -53,11 +55,13 @@ class ComponentRegistry:
 
     def get_factory(self, key: str) -> Optional[Callable]:
         """Retrieves the factory recipe for a key."""
-        return self._factories.get(key, None)
+        record = self._component_records.get(key, None)
+        return record.factory if record else None
 
     def get_metadata(self, key: str) -> Optional[ComponentMetadata]:
         """Retrieves the metadata 'ID card' for a key."""
-        return self._metadata.get(key, None)
+        record = self._component_records.get(key, None)
+        return record.metadata if record else None
 
     def get_key_by_type(self, cls: Type) -> Optional[str]:
         """The 'Type-to-Key' bridge. Finds the key associated with a class type."""
@@ -65,26 +69,31 @@ class ComponentRegistry:
 
     def get_all_metadata(self) -> dict[str, ComponentMetadata]:
         """Returns the full metadata dictionary for scanning/discovery."""
-        return self._metadata.copy()
+        return {
+            key:record.metadata
+            for key, record
+            in self._component_records.items()
+        }
 
     def is_registered(self, key: str) -> bool:
         """Checks if a key exists in the registry."""
-        return key in self._factories
+        return key in self._component_records
 
     def is_dependency(self, cls: Type[Any]) -> bool:
         return cls in self._type_to_key
 
     def get_registered_keys(self):
-        return list(self._factories.keys())
+        return list(self._component_records.keys())
 
     def get_lifecycle_keys(self):
 
         keys = [
-            key for key, metadata
-            in self._metadata.items()
-            if metadata.lifecycle > 0
+            key
+            for key, record
+            in self._component_records.items()
+            if record.metadata.lifecycle > 0
         ]
         return sorted(keys, key=lambda k: self.get_metadata(k).lifecycle)
 
-    def get_overrides(self, key: str) -> dict[str, Any]:
-        return self._overrides.get(key, {})
+    def get_record(self, key: str) -> ComponentRegistration:
+        return self._component_records.get(key, None)

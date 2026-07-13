@@ -6,7 +6,7 @@ from fastapi.exceptions import ValidationException
 
 from app.di.component_registry import ComponentRegistry
 from app.exceptions.di import CycleDetectedError, DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
-from app.models.component import ComponentMetadata
+from app.models.component import ComponentMetadata, ComponentRegistration
 
 
 class GraphValidationError(Exception): pass
@@ -156,7 +156,7 @@ class DependencyContainer:
             raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
 
         path.append(cur)
-        cur_overrides = self._registry.get_overrides(cur)
+        cur_overrides = self._registry.get_record(cur).overrides
         for req_name, req_type in metadata.requirements.items():
             if req_name in cur_overrides:
                 continue
@@ -176,5 +176,5 @@ class DependencyContainer:
         for key in self._registry.get_all_metadata().keys():
             self._validate_graph_dfs_rec(key, path, safe)
 
-    def get_overrides(self, key: str) -> dict[str, Any]:
-        return self._registry.get_overrides(key)
+    def get_record(self, key: str) -> ComponentRegistration:
+        return self._registry.get_record(key)

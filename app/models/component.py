@@ -1,7 +1,7 @@
 #./app/models/component.py
 
 from dataclasses import dataclass
-from typing import Type, Any
+from typing import Type, Any, Callable
 
 from pydantic import BaseModel
 
@@ -21,3 +21,10 @@ class ComponentMetadata:
     settings_cls: Type[BaseModel] | None = None
     is_dependency: bool = False
     lifecycle: int = 0
+
+
+@dataclass(frozen=True)
+class ComponentRegistration:
+    metadata: ComponentMetadata
+    factory: Callable
+    overrides: dict[str, Any] | None = None

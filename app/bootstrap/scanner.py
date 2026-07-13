@@ -15,12 +15,12 @@ class Scanner:
         self._module_importer = module_importer
         self._scanned_modules: list[str] = []
 
-    def scan_packages(self, path: list[str]) -> list[str]:
+    def scan_packages(self, name: list[str]) -> list[str]:
         """
-        Scans all modules at package root 'path'
+        Scans all modules in namespace 'name'
         """
         found = []
-        for item in path:
+        for item in name:
             package = self._module_importer(item)
             prefix = package.__name__ + '.'
             found.extend([

@@ -150,8 +150,9 @@ class DependencyContainer:
 
         metadata = self._registry.get_metadata(cur)
 
-        if not self._registry.is_dependency(metadata.type):
-            raise DependencyNotFoundError(f"Dependency '{cur}' is not a registered dependency")
+        if not self._registry.is_dependency(metadata.type) and len(path) > 0:
+            parent = path[-1]
+            raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
 
         path.append(cur)
 

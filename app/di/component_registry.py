@@ -5,7 +5,7 @@ from typing import (
     Optional
 )
 
-from app.exceptions.di import DuplicateKeyError, FactoryNotFoundError, MetadataNotFoundError
+from app.exceptions.di import DuplicateKeyError, MetadataNotFoundError
 from app.models.component import ComponentMetadata
 
 

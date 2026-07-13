@@ -11,10 +11,7 @@ class DummyService(ABC):
     def __init__(self):
         pass
 
-
-    @route(path="dummy",
-           methods=["GET"],
-           tags=["test"])
+    @route(path='dummy')
     @abstractmethod
     async def dummy_method(self):
         raise NotImplemented

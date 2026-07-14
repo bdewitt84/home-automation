@@ -4,27 +4,32 @@ import pytest
 from unittest.mock import Mock
 
 from app.di.component_registry import ComponentRegistry
-from app.exceptions.di import DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError
+from app.exceptions.di import DuplicateKeyError
 from app.models.component import ComponentMetadata
 
 
-def _get_mock_component_data(key: str=None, is_dependency: bool=False):
+def _get_mock_component_data(key: str=None,
+                             is_dependency: bool=False,
+                             cls: type=None,
+                             lifecycle: int=None,):
     # TODO: Consider taking arguments for key, possibly just stuffing it in metadata
     registry = ComponentRegistry()
     mock_factory = Mock()
     class MockComponent: pass
     mock_metadata = ComponentMetadata(
         key = key or MockComponent.__name__,
-        type = MockComponent,
+        type = cls or MockComponent,
         is_dependency = is_dependency,
+        lifecycle = lifecycle or 0,
     )
 
     return registry, mock_factory, mock_metadata
 
 def test_add_component_is_dependency():
-    registry, mock_factory, mock_metadata = _get_mock_component_data()
+    registry, mock_factory, mock_metadata = _get_mock_component_data(
+        is_dependency=True
+    )
     mock_type = mock_metadata.type
-    mock_metadata.is_dependency = True
     mock_key = 'test'
 
     registry.add_component(mock_key, mock_factory, mock_metadata)
@@ -59,8 +64,7 @@ def test_add_component_duplicate_key():
 
 
 def test_add_component_already_registered():
-    registry, mock_factory, mock_metadata = _get_mock_component_data()
-    mock_metadata.is_dependency = True
+    registry, mock_factory, mock_metadata = _get_mock_component_data(is_dependency=True)
     registry.add_component('test_a', mock_factory, mock_metadata)
     with pytest.raises(DuplicateKeyError) as e:
         registry.add_component('test_b', mock_factory, mock_metadata)
@@ -87,8 +91,7 @@ def test_get_singleton():
 
 
 def test_get_factory_registered():
-    registry, mock_factory, mock_metadata = _get_mock_component_data()
-    mock_metadata.is_dependency = True
+    registry, mock_factory, mock_metadata = _get_mock_component_data(is_dependency=True)
     mock_key = 'test'
     registry.add_component(mock_key, mock_factory, mock_metadata)
 
@@ -105,8 +108,7 @@ def test_get_factory_not_registered():
 
 
 def test_get_metadata():
-    registry, mock_factory, mock_metadata = _get_mock_component_data()
-    mock_metadata.is_dependency = True
+    registry, mock_factory, mock_metadata = _get_mock_component_data(is_dependency=True)
     mock_key = 'test'
     registry.add_component(mock_key, mock_factory, mock_metadata)
 
@@ -156,14 +158,18 @@ def test_is_registered():
 
 
 def test_is_dependency():
-    registry, mock_factory_a, mock_metadata_a = _get_mock_component_data()
+
     class MockDependency: pass
-    mock_metadata_a.type = MockDependency
-    mock_metadata_a.is_dependency = True
-    _, mock_factory_b, mock_metadata_b = _get_mock_component_data()
+    registry, mock_factory_a, mock_metadata_a = _get_mock_component_data(
+        is_dependency=True,
+        cls=MockDependency
+    )
+
     class MockNotDependency: pass
-    mock_metadata_b.type = MockNotDependency
-    mock_metadata_b.is_dependency = False
+    _, mock_factory_b, mock_metadata_b = _get_mock_component_data(
+        is_dependency=False,
+        cls=MockNotDependency
+    )
 
     registry.add_component('test_a', mock_factory_a, mock_metadata_a)
     registry.add_component('test_b', mock_factory_b, mock_metadata_b)
@@ -186,15 +192,13 @@ def test_get_registered_keys():
     assert mock_key_b in result
 
 def test_get_lifecycle_keys():
-    registry, mock_factory_a, mock_metadata_a = _get_mock_component_data()
-    _, mock_factory_b, mock_metadata_b = _get_mock_component_data()
-    _, mock_factory_c, mock_metadata_c = _get_mock_component_data()
+
     mock_key_a = 'test_a'
     mock_key_b = 'test_b'
     mock_key_c = 'test_c'
-    mock_metadata_a.lifecycle = 2
-    mock_metadata_b.lifecycle = 1
-    mock_metadata_c.lifecycle = 0
+    registry, mock_factory_a, mock_metadata_a = _get_mock_component_data(key=mock_key_a, lifecycle=2)
+    _, mock_factory_b, mock_metadata_b = _get_mock_component_data(key=mock_key_b, lifecycle=1)
+    _, mock_factory_c, mock_metadata_c = _get_mock_component_data(key=mock_key_c,lifecycle=0)
     registry.add_component(mock_key_a, mock_factory_a, mock_metadata_a)
     registry.add_component(mock_key_b, mock_factory_b, mock_metadata_b)
     registry.add_component(mock_key_c, mock_factory_c, mock_metadata_c)

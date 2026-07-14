@@ -28,7 +28,10 @@ class DependencyContainer:
                          metadata: ComponentMetadata = None,
                          ) -> None:
 
-        self._registry.add_component(key, factory, overrides, metadata)
+        self._registry.add_component(key=key,
+                                     factory=factory,
+                                     overrides=overrides,
+                                     metadata=metadata)
 
     def resolve(self, key: str) -> Any:
         instance = self._registry.get_singleton(key)
@@ -125,7 +128,10 @@ class DependencyContainer:
         factory = lambda: self
 
         metadata = ComponentMetadata(name, type_, is_dependency=True)
-        self.register_factory(name, factory, {}, metadata)
+        self.register_factory(key=name,
+                              factory=factory,
+                              overrides={},
+                              metadata=metadata,)
 
     def validate_graph(self):
         for key, metadata in self._registry.get_all_metadata().items():

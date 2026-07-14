@@ -18,8 +18,8 @@ class ComponentRegistry:
     def add_component(self,
                       key: str,
                       factory: Callable,
-                      overrides: dict[str, Any],
                       metadata: ComponentMetadata,
+                      overrides: Optional[dict[str, Any]] = None,
                       ) -> None:
         """
         Stores the factory and metadata.
@@ -34,6 +34,9 @@ class ComponentRegistry:
 
         if metadata.is_dependency and metadata.type in self._type_to_key:
             raise DuplicateKeyError(f"Type '{metadata.type.__name__}' is already mapped to a key")
+
+        if overrides is None:
+            overrides = {}
 
         new_record = ComponentRegistration(
             factory=factory,

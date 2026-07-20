@@ -184,3 +184,6 @@ class DependencyContainer:
 
     def get_record(self, key: str) -> ComponentRegistration:
         return self._registry.get_record(key)
+
+    def get_all_records(self) -> dict[str, ComponentRegistration]:
+        return self._registry.get_all_records()

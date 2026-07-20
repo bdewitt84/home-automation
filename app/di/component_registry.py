@@ -100,3 +100,6 @@ class ComponentRegistry:
 
     def get_record(self, key: str) -> ComponentRegistration:
         return self._component_records.get(key, None)
+
+    def get_all_records(self) -> dict[str, ComponentRegistration]:
+        return self._component_records

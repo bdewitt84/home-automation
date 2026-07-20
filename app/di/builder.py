@@ -2,27 +2,41 @@
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata, MetadataRegistry
+from app.exceptions.di import DependencyNotFoundError, CycleDetectedError
+
+class GraphValidationError(Exception): pass
+
+
+class MetadataNotFoundError(GraphValidationError): pass
 
 
 class ContainerBuilder:
-    def __init__(self, registry: MetadataRegistry, config: dict):
+    def __init__(self,
+                 container: DependencyContainer,
+                 registry: MetadataRegistry,
+                 config: dict):
+        self._container = container
         self._registry: MetadataRegistry = registry
         self._config = config
-        self._container: DependencyContainer | None = None
+        self._component_graph: dict[str, dict] = {}
 
-    def build(self) -> DependencyContainer:
-        self._container = DependencyContainer()
+    def build(self) -> None:
         self._container.register_self()
         self._wire_infrastructure()
         self._wire_user_components()
-        self._verify_dependency_graph()
-        return self._container
+        self._build_component_graph()
+        self._validate_dependency_graph()
 
     def _wire_infrastructure(self) -> None:
         for _component_cls, metadata in self._registry.items():
             if metadata.is_dependency:
                 try:
-                    self._container.register_component(metadata.key, _component_cls, metadata, overrides=None)
+                    self._container.register_component(
+                        key=metadata.key,
+                        cls=_component_cls,
+                        metadata=metadata,
+                        overrides=None
+                    )
 
                 except Exception as e:
                     raise RuntimeError(
@@ -61,5 +75,41 @@ class ContainerBuilder:
             if metadata.key == key:
                 return metadata
 
-    def _verify_dependency_graph(self):
-        self._container.validate_graph_dfs()
+    def _build_component_graph(self) -> None:
+        for key, record in self._container.get_all_records().items():
+            dependencies = []
+            for req_name, req_type in record.metadata.requirements.items():
+                if req_name in record.overrides:
+                    continue
+                req_key = self._container.get_key_by_type(req_type)
+                if req_key is None:
+                    raise DependencyNotFoundError(f"Dependency '{req_name}' not found for component '{key}'")
+                dependencies.append(req_key)
+            self._component_graph[key] = {
+                "requires": dependencies,
+                "is_dependency": record.metadata.is_dependency,
+            }
+
+    def _validate_graph_dfs_rec(self, cur: str, path: list, safe: set) -> None:
+        if cur in safe:
+            return
+        if cur in path:
+            raise CycleDetectedError(f"Cycle detected validating {cur}: {' -> '.join(path + [cur])}")
+
+        node = self._component_graph[cur]
+
+        if not node["is_dependency"] and len(path) > 0:
+            parent = path[-1]
+            raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
+
+        path.append(cur)
+        for req_key in node["requires"]:
+            self._validate_graph_dfs_rec(req_key, path, safe)
+        safe.add(cur)
+        path.pop()
+
+    def _validate_dependency_graph(self) -> None:
+        path: list[str] = []
+        safe: set = {self.__class__.__name__}
+        for key in self._component_graph.keys():
+            self._validate_graph_dfs_rec(key, path, safe)

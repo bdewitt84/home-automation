@@ -2,16 +2,9 @@
 
 from typing import Callable, Any, Type, Optional
 
-from fastapi.exceptions import ValidationException
-
 from app.di.component_registry import ComponentRegistry
-from app.exceptions.di import CycleDetectedError, DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
+from app.exceptions.di import DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
 from app.models.component import ComponentMetadata, ComponentRegistration
-
-
-class GraphValidationError(Exception): pass
-
-class MetadataNotFoundError(GraphValidationError): pass
 
 
 class DependencyContainer:
@@ -133,57 +126,11 @@ class DependencyContainer:
                               overrides={},
                               metadata=metadata,)
 
-    def validate_graph(self):
-        for key, metadata in self._registry.get_all_metadata().items():
-
-            if metadata.type == self.__class__:
-                continue
-
-            requirements = metadata.requirements
-            overrides = {}
-
-            try:
-                self._validate(requirements, overrides)
-
-            except Exception as e:
-                raise ValidationException(f"Error validating {metadata.type} with key {key}: {e}") from e
-
-
-    def _validate_graph_dfs_rec(self, cur: str, path: list, safe: set):
-        if cur in safe:
-            return
-        if cur in path:
-            raise CycleDetectedError(f"Cycle detected validating {cur}: {' -> '.join(path + [cur])}")
-
-        metadata = self._registry.get_metadata(cur)
-
-        if not self._registry.is_dependency(metadata.type) and len(path) > 0:
-            parent = path[-1]
-            raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
-
-        path.append(cur)
-        cur_overrides = self._registry.get_record(cur).overrides
-        for req_name, req_type in metadata.requirements.items():
-            if req_name in cur_overrides:
-                continue
-            req_key = self._registry.get_key_by_type(req_type)
-            if not req_key:
-                raise DependencyNotFoundError(f"Component {cur} requires Dependency '{req_type.__name__}', "
-                                              f"but it has no registered key")
-            self._validate_graph_dfs_rec(req_key, path, safe)
-
-        safe.add(cur)
-        path.pop()
-
-
-    def validate_graph_dfs(self):
-        path: list[str] = []
-        safe: set = {self.__class__.__name__}
-        for key in self._registry.get_all_metadata().keys():
-            self._validate_graph_dfs_rec(key, path, safe)
-
     def get_record(self, key: str) -> ComponentRegistration:
         return self._registry.get_record(key)
 
     def get_all_records(self) -> dict[str, ComponentRegistration]:
         return self._registry.get_all_records()
+
+    def get_key_by_type(self, cls: Type) -> Optional[str]:
+        return self._registry.get_key_by_type(cls)

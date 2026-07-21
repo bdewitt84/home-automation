@@ -1,6 +1,6 @@
 #./app/models/component.py
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type, Any, Callable
 
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ class ComponentMetadata:
     key: str
     type: Type[Any]
     scope: str = Scopes.SINGLETON
-    requirements: dict[str, Type[Any]] | None = None
+    requirements: dict[str, Type[Any]] = field(default_factory=dict)
     settings_cls: Type[BaseModel] | None = None
     is_dependency: bool = False
     lifecycle: int = 0

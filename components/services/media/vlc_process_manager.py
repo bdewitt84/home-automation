@@ -27,6 +27,7 @@ class VlcProcessManager(LifecycleManagement):
         self.port = settings.port
         self.password = settings.password
         self._process: Optional[asyncio.subprocess.Process] = None
+        self._stdout_reader_task: Optional[asyncio.Task] = None
 
 
     async def _read_output_loop(self, stream: StreamReader):
@@ -66,8 +67,15 @@ class VlcProcessManager(LifecycleManagement):
             except Exception as e:
                 print(f"Failed to terminate VLC process: {e}")
 
+            finally:
+                self._process = None
+
 
     async def start(self):
+
+        if self._process:
+            print("VLC process is already running")
+            return
 
         cmd = 'vlc'
         args = [
@@ -83,7 +91,6 @@ class VlcProcessManager(LifecycleManagement):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
-            # TODO: defined outside of __init__
             self._stdout_reader_task = asyncio.create_task(
                 self._read_output_loop(self._process.stdout)
             )
@@ -98,12 +105,13 @@ class VlcProcessManager(LifecycleManagement):
     async def stop(self):
         if self._stdout_reader_task:
             self._stdout_reader_task.cancel()
-
             try:
                 await self._stdout_reader_task
             except asyncio.CancelledError:
                 # this is the desired outcome, so we pass on this exception
                 pass
+            finally:
+                self._stdout_reader_task = None
 
         await self._terminate_process()
         print("VLC process stopped successfully")

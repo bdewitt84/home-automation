@@ -105,7 +105,7 @@ class ContainerBuilder:
 
         if not node["is_dependency"] and len(path) > 0:
             parent = path[-1]
-            raise GraphValidationError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
+            raise IllegalDependencyError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
 
         path.append(cur)
         for req_key in node["requires"]:

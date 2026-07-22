@@ -1,18 +1,11 @@
 # config/settings.py
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from app.di.keys import APP_SETTINGS_KEY
-from app.di.registry import component
+from pydantic_settings import BaseSettings
+import os
 
 
-@component(key=APP_SETTINGS_KEY,
-           is_dependency=True
-           )
 class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix='APP_',
-        case_sensitive=False,
-        env_file='.env',
-        env_file_encoding='utf-8',
-    )
+    PROJECT_ROOT: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    CONFIG_FILE_PATH: str = './config/config.json'
+    SERVICE_PACKAGE_NAME: str = 'components'
+    CONTROLLER_PACKAGE_NAME: str = 'api.v1.controllers'

@@ -58,10 +58,13 @@ class ContainerBuilder:
                 print(f"Warning: No metadata found for component type '{type_name}'")
                 continue
 
+            overrides = {}
+
             settings_cls = metadata.settings_cls
-            settings_data = component_data.get('settings', {})
-            settings_instance = settings_cls(**settings_data)
-            overrides = {'settings': settings_instance}
+            if settings_cls:
+                settings_data = component_data.get('settings', {})
+                settings_instance = settings_cls(**settings_data)
+                overrides['settings'] = settings_instance
 
             # TODO: Add to try block
             self._container.register_component(

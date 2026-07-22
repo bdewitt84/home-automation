@@ -4,9 +4,15 @@ from unittest.mock import Mock
 import pytest
 from typing import Type, Any
 
-from app.di.builder import ContainerBuilder, GraphValidationError
+from app.di.builder import ContainerBuilder
 from app.models.component import ComponentMetadata, ComponentRegistration
-from app.exceptions.di import CycleDetectedError, DependencyNotFoundError
+from app.exceptions.di import (
+    GraphValidationError,
+    CycleDetectedError,
+    DependencyNotFoundError,
+    MetadataNotFoundError,
+    RequirementsNotFoundError,
+)
 
 
 def generate_metadata(cls: Type, requirements: dict[str, Type[Any]] = None, is_dependency=True):
@@ -138,6 +144,65 @@ def test_wire_user_components():
         cls=mock_user_component_metadata.type,
         metadata=mock_user_component_metadata,
         overrides={"settings": mock_settings_instance},
+    )
+
+
+def test_wire_user_components_no_settings():
+    """
+    Test the behavior of the wire_user_components method when a component with no settings class is provided.
+    """
+
+    class MockDependency: pass
+
+    mock_dependency_metadata = ComponentMetadata(
+        key=MockDependency.__name__,
+        type=MockDependency,
+        is_dependency=True,
+    )
+
+    mock_settings_instance = Mock()
+    mock_settings_cls = Mock()
+    mock_settings_cls.return_value = mock_settings_instance
+
+    class MockUserComponent: pass
+
+    mock_user_component_metadata = ComponentMetadata(
+        key=MockUserComponent.__name__,
+        type=MockUserComponent,
+        settings_cls=None, # type: ignore
+        is_dependency=False,
+    )
+
+    mock_container = Mock()
+    mock_registry = {
+        MockUserComponent: mock_user_component_metadata,
+        MockDependency: mock_dependency_metadata,
+    }
+
+    mock_user_component_key = "mock_user_component_key"
+    mock_user_component_settings = {}
+    mock_user_config = {
+        "components": {
+            mock_user_component_key: {
+                "type": MockUserComponent.__name__,
+                "settings": mock_user_component_settings,
+            }
+        }
+    }
+
+    builder = ContainerBuilder(
+        container=mock_container,
+        registry=mock_registry,
+        config=mock_user_config,
+    )
+
+    builder._wire_user_components()
+
+    mock_container.register_component.assert_called_once_with(
+        key=mock_user_component_key,
+        cls=mock_user_component_metadata.type,
+        metadata=mock_user_component_metadata,
+        overrides={},
     )
 
 

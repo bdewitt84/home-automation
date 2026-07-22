@@ -31,3 +31,7 @@ class DependencyNotFoundError(GraphValidationError):
 
 class RequirementsNotFoundError(GraphValidationError):
     pass
+
+
+class IllegalDependencyError(GraphValidationError):
+    pass

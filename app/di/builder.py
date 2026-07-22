@@ -82,7 +82,7 @@ class ContainerBuilder:
             if record.metadata is None:
                 raise MetadataNotFoundError(f"No metadata found for component '{key}'")
             if record.metadata.requirements is None:
-                raise MetadataNotFoundError(f"No requirements found for component '{key}'")
+                raise RequirementsNotFoundError(f"No requirements found for component '{key}'")
             for req_name, req_type in record.metadata.requirements.items():
                 if req_name in record.overrides:
                     continue

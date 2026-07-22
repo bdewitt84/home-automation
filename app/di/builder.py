@@ -66,13 +66,16 @@ class ContainerBuilder:
                 settings_instance = settings_cls(**settings_data)
                 overrides['settings'] = settings_instance
 
-            # TODO: Add to try block
-            self._container.register_component(
-                key=component_name,
-                cls=metadata.type,
-                metadata=metadata,
-                overrides=overrides,
-            )
+            try:
+                self._container.register_component(
+                    key=component_name,
+                    cls=metadata.type,
+                    metadata=metadata,
+                    overrides=overrides,
+                )
+            except Exception as e:
+                raise RuntimeError(f"Critical wiring failure for component '{component_name}': {e}") from e
+
 
     def _get_metadata_by_key(self, key: str)-> ComponentMetadata | None:
         for metadata in self._registry.values():

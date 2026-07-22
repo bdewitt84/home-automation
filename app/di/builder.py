@@ -2,12 +2,13 @@
 
 from app.di.container import DependencyContainer
 from app.di.registry import ComponentMetadata, MetadataRegistry
-from app.exceptions.di import DependencyNotFoundError, CycleDetectedError
-
-class GraphValidationError(Exception): pass
-
-
-class MetadataNotFoundError(GraphValidationError): pass
+from app.exceptions.di import (
+    DependencyNotFoundError,
+    CycleDetectedError,
+    MetadataNotFoundError,
+    RequirementsNotFoundError,
+    IllegalDependencyError,
+)
 
 
 class ContainerBuilder:

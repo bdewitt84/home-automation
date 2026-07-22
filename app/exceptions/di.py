@@ -27,3 +27,7 @@ class CycleDetectedError(GraphValidationError):
 
 class DependencyNotFoundError(GraphValidationError):
     pass
+
+
+class RequirementsNotFoundError(GraphValidationError):
+    pass

@@ -12,7 +12,6 @@ def _get_mock_component_data(key: str=None,
                              is_dependency: bool=False,
                              cls: type=None,
                              lifecycle: int=None,):
-    # TODO: Consider taking arguments for key, possibly just stuffing it in metadata
     registry = ComponentRegistry()
     mock_factory = Mock()
     class MockComponent: pass

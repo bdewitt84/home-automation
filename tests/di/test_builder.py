@@ -398,3 +398,71 @@ def test_build_component_graph_dependency_not_found():
 
     with pytest.raises(DependencyNotFoundError):
         builder._build_component_graph()
+
+
+def test_build_component_graph_metadata_not_found():
+    class FakeDependency: pass
+
+    class FakeContainer():
+        def __init__(self):
+            self._records = {
+                FakeDependency.__name__ : ComponentRegistration(
+                    metadata=None, # type: ignore
+                    factory=lambda: FakeDependency(),
+                    overrides={}
+                )
+            }
+            self._type_to_key = {
+                FakeDependency: FakeDependency.__name__,
+            }
+
+        def get_all_records(self):
+            return self._records
+
+        def get_key_by_type(self, cls):
+            return self._type_to_key[cls]
+
+    builder = ContainerBuilder(
+        container=FakeContainer(), # type: ignore
+        registry={},
+        config={}
+    )
+
+    with pytest.raises(MetadataNotFoundError):
+        builder._build_component_graph()
+
+def test_build_component_graph_requirements_not_found():
+    class FakeDependency: pass
+
+    class FakeContainer():
+        def __init__(self):
+            self._records = {
+                FakeDependency.__name__: ComponentRegistration(
+                    metadata=ComponentMetadata(
+                        key=FakeDependency.__name__,
+                        type=FakeDependency,
+                        requirements=None, # Type: ignore
+                        is_dependency=True,
+                    ),
+                    factory=lambda: FakeDependency(),
+                    overrides={},
+                ),
+            }
+            self._type_to_key = {
+                FakeDependency: FakeDependency.__name__,
+            }
+
+        def get_all_records(self):
+            return self._records
+
+        def get_key_by_type(self, cls):
+            return self._type_to_key[cls]
+
+    builder = ContainerBuilder(
+        container=FakeContainer(), # type: ignore
+        registry={},
+        config={}
+    )
+
+    with pytest.raises(RequirementsNotFoundError):
+        builder._build_component_graph()

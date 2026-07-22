@@ -1,6 +1,7 @@
 # components/infrastructure/os_utils.py
 
 import subprocess
+import os
 
 from app.di.registry import component
 from app.models.system import SystemResult
@@ -39,3 +40,7 @@ class OSUtils:
 
         except Exception as e:
             raise Exception(f"An unexpected error occurred executing cmd '{cmd}': {e}")
+
+    @staticmethod
+    def path_join(base_path: str, *paths: str):
+        return os.path.join(base_path, *paths)

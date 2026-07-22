@@ -7,10 +7,8 @@ from app.models.component import Scopes, ComponentMetadata
 from app.di.introspector import Introspector
 
 
-SERVICE_CLS_INDEX = 0
-METADATA_INDEX = 1
-
 MetadataRegistry: TypeAlias = Dict[Type[Any] | Callable, ComponentMetadata]
+
 
 METADATA_REGISTRY: MetadataRegistry = {}
 

@@ -4,6 +4,8 @@ from unittest.mock import Mock
 import pytest
 from typing import Type, Any
 
+from pydantic import BaseModel
+
 from app.di.builder import ContainerBuilder
 from app.models.component import ComponentMetadata, ComponentRegistration
 from app.exceptions.di import (
@@ -13,6 +15,7 @@ from app.exceptions.di import (
     MetadataNotFoundError,
     RequirementsNotFoundError,
 )
+from app.models.config import Config, ConfigComponent
 
 
 def generate_metadata(cls: Type, requirements: dict[str, Type[Any]] = None, is_dependency=True):
@@ -102,15 +105,14 @@ def test_wire_user_components():
         is_dependency=True,
     )
 
-    mock_settings_instance = Mock()
-    mock_settings_cls = Mock()
-    mock_settings_cls.return_value = mock_settings_instance
+    class MockSettings(BaseModel): pass
+    mock_settings_instance = MockSettings()
 
     class MockUserComponent: pass
     mock_user_component_metadata = ComponentMetadata(
         key=MockUserComponent.__name__,
         type=MockUserComponent,
-        settings_cls=mock_settings_cls, # type: ignore
+        settings_cls=MockSettings,
         is_dependency=False,
     )
 
@@ -121,15 +123,18 @@ def test_wire_user_components():
     }
 
     mock_user_component_key = "mock_user_component_key"
-    mock_user_component_settings = {}
-    mock_user_config = {
-        "components": {
-            mock_user_component_key : {
-                "type": MockUserComponent.__name__,
-                "settings": mock_user_component_settings,
-            }
+
+    mock_user_config = Config(
+        version="0.0.0",
+        app_settings={},
+        components={
+            mock_user_component_key: ConfigComponent(
+                type=MockUserComponent.__name__,
+                name="mock_user_component",
+                settings=mock_settings_instance,
+            )
         }
-    }
+    )
 
     builder = ContainerBuilder(
         container=mock_container,
@@ -180,15 +185,19 @@ def test_wire_user_components_no_settings():
     }
 
     mock_user_component_key = "mock_user_component_key"
-    mock_user_component_settings = {}
-    mock_user_config = {
-        "components": {
-            mock_user_component_key: {
-                "type": MockUserComponent.__name__,
-                "settings": mock_user_component_settings,
-            }
+    mock_user_component_settings = None
+
+    mock_user_config = Config(
+        version="0.0.0",
+        app_settings={},
+        components={
+            mock_user_component_key: ConfigComponent(
+                type=MockUserComponent.__name__,
+                name="mock_user_component",
+                settings=mock_user_component_settings,
+            )
         }
-    }
+    )
 
     builder = ContainerBuilder(
         container=mock_container,

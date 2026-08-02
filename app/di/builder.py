@@ -9,13 +9,14 @@ from app.exceptions.di import (
     RequirementsNotFoundError,
     IllegalDependencyError,
 )
+from app.models.config import Config
 
 
 class ContainerBuilder:
     def __init__(self,
                  container: DependencyContainer,
                  registry: MetadataRegistry,
-                 config: dict):
+                 config: Config):
         self._container = container
         self._registry: MetadataRegistry = registry
         self._config = config
@@ -25,6 +26,7 @@ class ContainerBuilder:
         self._container.register_self()
         self._wire_infrastructure()
         self._wire_user_components()
+        # TODO: Resolve naming inconsistency
         self._build_component_graph()
         self._validate_dependency_graph()
 
@@ -45,26 +47,15 @@ class ContainerBuilder:
 
 
     def _wire_user_components(self) -> None:
-        # TODO: Change config to DTO
-        components_config = self._config.get('components', {})
 
-        for component_name, component_data in components_config.items():
+        for component_name, component_data in self._config.components.items():
 
-            type_name = component_data['type']
-            metadata = self._get_metadata_by_key(type_name)
-
-            # TODO: Move validation to config loader
-            if not metadata:
-                print(f"Warning: No metadata found for component type '{type_name}'")
-                continue
-
+            metadata = self._get_metadata_by_key(component_data.type)
+            settings = component_data.settings
             overrides = {}
 
-            settings_cls = metadata.settings_cls
-            if settings_cls:
-                settings_data = component_data.get('settings', {})
-                settings_instance = settings_cls(**settings_data)
-                overrides['settings'] = settings_instance
+            if settings:
+                overrides = {'settings': component_data.settings}
 
             try:
                 self._container.register_component(
@@ -73,6 +64,7 @@ class ContainerBuilder:
                     metadata=metadata,
                     overrides=overrides,
                 )
+
             except Exception as e:
                 raise RuntimeError(f"Critical wiring failure for component '{component_name}': {e}") from e
 
@@ -85,10 +77,13 @@ class ContainerBuilder:
     def _build_component_graph(self) -> None:
         for key, record in self._container.get_all_records().items():
             dependencies = []
+
+            # TODO: Move these checks to the ComponentRegistry, where the records are stored
             if record.metadata is None:
                 raise MetadataNotFoundError(f"No metadata found for component '{key}'")
             if record.metadata.requirements is None:
                 raise RequirementsNotFoundError(f"No requirements found for component '{key}'")
+
             for req_name, req_type in record.metadata.requirements.items():
                 if req_name in record.overrides:
                     continue

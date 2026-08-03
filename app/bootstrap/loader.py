@@ -2,20 +2,37 @@
 
 from json import load
 from typing import (
-    Callable,
     IO,
+    Protocol,
+    Literal,
 )
 
 from app.models.config import Config
 from app.bootstrap.interpolator import interpolate_environment_variables
 
 
+class Reader(Protocol):
+    def __call__(self, file: str, mode: Literal['r'] = 'r') -> IO[str]: ...
+
+
+class Decoder(Protocol):
+    def __call__(self, stream: IO[str]) -> dict: ...
+
+
+class Parser(Protocol):
+    def __call__(self, data: dict) -> Config: ...
+
+
+class Interpolator(Protocol):
+    def __call__(self, data: dict) -> None: ...
+
+
 class Loader:
     def __init__(self,
-                 parser: Callable[[dict], Config],
-                 reader: Callable[[str, str], IO[str]] = open,
-                 decoder: Callable[[IO[str]], dict] = load,
-                 interpolator: Callable[[dict], None] = interpolate_environment_variables,
+                 parser: Parser,
+                 reader: Reader = open,
+                 decoder: Decoder = load,
+                 interpolator: Interpolator = interpolate_environment_variables,
                  ):
         self._parser = parser
         self._reader = reader

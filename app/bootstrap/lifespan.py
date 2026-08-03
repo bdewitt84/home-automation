@@ -42,10 +42,8 @@ async def lifespan(app: FastAPI):
 
         # --- Load Config ---
         parser = ConfigParser(registry=METADATA_REGISTRY)
-        loader = Loader(
-            parser=parser.parse_config,
-        )
-        config = loader.load_from_path(CONFIG_FILE_PATH)
+        loader = Loader(parser=parser.parse_config)
+        config = loader.load_from_path(path=CONFIG_FILE_PATH)
 
 
         # --- Wire Components ---

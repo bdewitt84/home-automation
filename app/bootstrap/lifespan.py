@@ -5,23 +5,17 @@ from fastapi import FastAPI
 
 from app.bootstrap.parser import ConfigParser
 from app.bootstrap.scanner import Scanner
-
-from app.bootstrap.wiring import (
-    wire_lifecycle_management,
+from app.bootstrap.loader import Loader
+from app.bootstrap.wiring import wire_lifecycle_management
+from app.bootstrap.state import init_lifecycle_manager
+from app.bootstrap.lifecycle import (
+    startup_state,
+    shutdown_state,
 )
+from app.di.registry import METADATA_REGISTRY
 from app.di.builder import ContainerBuilder
 from app.di.container import DependencyContainer
-
 from app.routing.builder import RouteBuilder
-
-from app.bootstrap.loader import Loader
-
-from app.bootstrap.state import (
-    init_lifecycle_manager,
-)
-
-from app.bootstrap.lifecycle import startup_state, shutdown_state
-from app.di.registry import METADATA_REGISTRY
 
 
 #todo: place these in app settings?

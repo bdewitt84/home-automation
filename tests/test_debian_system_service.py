@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from components.services.debian_system_service import (
     DebianSystemService,
     UPDATE_SCRIPT_RELATIVE_PATH, # We import the constant for clarity
+    PROJECT_ROOT,
 )
 
 OS_UTILS_MOCK_PATH = 'core.os_utils.execute_shell_command'
@@ -23,6 +24,7 @@ def test_update_application_success():
     }
     mock_os_utils = Mock()
     mock_os_utils.execute_shell_command.return_value = mock_return
+    mock_os_utils.path_join.return_value = PROJECT_ROOT + UPDATE_SCRIPT_RELATIVE_PATH
     system_service = DebianSystemService(mock_os_utils)
 
     # Act
@@ -51,6 +53,7 @@ def test_update_application_failure():
     }
     mock_os_utils = Mock()
     mock_os_utils.execute_shell_command.return_value = mock_return
+    mock_os_utils.path_join.return_value = PROJECT_ROOT + UPDATE_SCRIPT_RELATIVE_PATH
     system_service = DebianSystemService(mock_os_utils)
 
     # Act

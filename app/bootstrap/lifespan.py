@@ -16,12 +16,7 @@ from app.di.registry import METADATA_REGISTRY
 from app.di.builder import ContainerBuilder
 from app.di.container import DependencyContainer
 from app.routing.builder import RouteBuilder
-
-
-#todo: place these in app settings?
-SERVICE_PACKAGE_NAME = 'components'
-CONTROLLER_PACKAGE_NAME = 'api.v1.controllers'
-CONFIG_FILE_PATH = './config/config.json'
+from config.settings import app_settings
 
 
 @asynccontextmanager
@@ -35,15 +30,15 @@ async def lifespan(app: FastAPI):
 
         # --- Scan Components ---
         scanner.scan_packages([
-            SERVICE_PACKAGE_NAME,
-            CONTROLLER_PACKAGE_NAME,
+            app_settings.SERVICE_PACKAGE_NAME,
+            app_settings.CONTROLLER_PACKAGE_NAME,
         ])
         scanner.import_scanned_modules()
 
         # --- Load Config ---
         parser = ConfigParser(registry=METADATA_REGISTRY)
         loader = Loader(parser=parser.parse_config)
-        config = loader.load_from_path(path=CONFIG_FILE_PATH)
+        config = loader.load_from_path(path=app_settings.CONFIG_FILE_PATH)
 
 
         # --- Wire Components ---

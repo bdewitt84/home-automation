@@ -5,8 +5,6 @@ from app.di.registry import ComponentMetadata, MetadataRegistry
 from app.exceptions.di import (
     DependencyNotFoundError,
     CycleDetectedError,
-    MetadataNotFoundError,
-    RequirementsNotFoundError,
     IllegalDependencyError,
 )
 from app.models.config import Config
@@ -76,12 +74,6 @@ class ContainerBuilder:
     def _build_dependency_graph(self) -> None:
         for key, record in self._container.get_all_records().items():
             dependencies = []
-
-            # TODO: Move these checks to the ComponentRegistry, where the records are stored
-            if record.metadata is None:
-                raise MetadataNotFoundError(f"No metadata found for component '{key}'")
-            if record.metadata.requirements is None:
-                raise RequirementsNotFoundError(f"No requirements found for component '{key}'")
 
             for req_name, req_type in record.metadata.requirements.items():
                 if req_name in record.overrides:

@@ -339,7 +339,7 @@ def test_build_component_graph():
         config={}
     )
 
-    builder._build_component_graph()
+    builder._build_dependency_graph()
 
     assert builder._component_graph == {
         FakeDependency.__name__: {
@@ -406,7 +406,7 @@ def test_build_component_graph_dependency_not_found():
     )
 
     with pytest.raises(DependencyNotFoundError):
-        builder._build_component_graph()
+        builder._build_dependency_graph()
 
 
 def test_build_component_graph_metadata_not_found():
@@ -438,7 +438,7 @@ def test_build_component_graph_metadata_not_found():
     )
 
     with pytest.raises(MetadataNotFoundError):
-        builder._build_component_graph()
+        builder._build_dependency_graph()
 
 def test_build_component_graph_requirements_not_found():
     class FakeDependency: pass
@@ -474,4 +474,4 @@ def test_build_component_graph_requirements_not_found():
     )
 
     with pytest.raises(RequirementsNotFoundError):
-        builder._build_component_graph()
+        builder._build_dependency_graph()

@@ -26,8 +26,7 @@ class ContainerBuilder:
         self._container.register_self()
         self._wire_infrastructure()
         self._wire_user_components()
-        # TODO: Resolve naming inconsistency
-        self._build_component_graph()
+        self._build_dependency_graph()
         self._validate_dependency_graph()
 
     def _wire_infrastructure(self) -> None:
@@ -74,7 +73,7 @@ class ContainerBuilder:
             if metadata.key == key:
                 return metadata
 
-    def _build_component_graph(self) -> None:
+    def _build_dependency_graph(self) -> None:
         for key, record in self._container.get_all_records().items():
             dependencies = []
 

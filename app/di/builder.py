@@ -1,7 +1,10 @@
 # ./app/di/builder.py
 
 from app.di.container import DependencyContainer
-from app.di.registry import ComponentMetadata, MetadataRegistry
+from app.di.registry import (
+    ComponentMetadata,
+    MetadataRegistry,
+)
 from app.exceptions.di import (
     DependencyNotFoundError,
     CycleDetectedError,
@@ -42,7 +45,6 @@ class ContainerBuilder:
                     raise RuntimeError(
                         f"Critical wiring failure for infrastructure component '{_component_cls.__name__}': {e}") from e
 
-
     def _wire_user_components(self) -> None:
 
         for component_name, component_data in self._config.components.items():
@@ -64,7 +66,6 @@ class ContainerBuilder:
 
             except Exception as e:
                 raise RuntimeError(f"Critical wiring failure for component '{component_name}': {e}") from e
-
 
     def _get_metadata_by_key(self, key: str)-> ComponentMetadata | None:
         for metadata in self._registry.values():

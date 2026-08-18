@@ -4,7 +4,7 @@ import pytest
 
 import app.di.registry
 from app.di.registry import component, METADATA_REGISTRY, clear_registry
-from app.models.component import ComponentMetadata
+from app.models.component import ComponentMetadata, DependencyRequirement
 
 
 @pytest.fixture(autouse=True)
@@ -37,15 +37,21 @@ def test_register_component_with_container():
         key=test_key,
         lifecycle=test_lifecycle)
     class TestComponent:
-        def __init__(self, int_param: int, str_param: str):
+        def __init__(self, int_param: int, str_param: str="default_value"):
             pass
 
     assert TestComponent in METADATA_REGISTRY
     metadata: ComponentMetadata = METADATA_REGISTRY[TestComponent]
     assert metadata.key == test_key
     assert metadata.lifecycle == test_lifecycle
-    assert metadata.requirements["int_param"] == int
-    assert metadata.requirements["str_param"] == str
+    assert metadata.requirements["int_param"] == DependencyRequirement(
+        type=int,
+        has_default=False,
+    )
+    assert metadata.requirements["str_param"] == DependencyRequirement(
+        type=str,
+        has_default=True,
+    )
     assert "self" not in metadata.requirements
 
     clear_registry()

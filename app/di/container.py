@@ -3,8 +3,16 @@
 from typing import Callable, Any, Type, Optional
 
 from app.di.component_registry import ComponentRegistry
-from app.exceptions.di import DependencyNotFoundError, FactoryNotFoundError, TypeNotFoundError
-from app.models.component import ComponentMetadata, ComponentRegistration
+from app.exceptions.di import (
+    DependencyNotFoundError,
+    FactoryNotFoundError,
+    TypeNotFoundError,
+)
+from app.models.component import (
+    ComponentMetadata,
+    ComponentRegistration,
+    DependencyRequirement,
+)
 
 
 class DependencyContainer:
@@ -60,11 +68,11 @@ class DependencyContainer:
     def get_lifecycle_keys(self):
         return self._registry.get_lifecycle_keys()
 
-    def _get_resolved_dependencies(self, requirements: dict[str, Type]) -> dict[str, Any]:
+    def _get_resolved_dependencies(self, requirements: dict[str, DependencyRequirement]) -> dict[str, Any]:
 
         resolved = {
-            name: self.resolve_by_type(arg_type)
-            for name, arg_type in requirements.items()
+            name: self.resolve_by_type(requirement.type)
+            for name, requirement in requirements.items()
         }
 
         return resolved
@@ -86,14 +94,20 @@ class DependencyContainer:
 
     def _create_factory(self,
                         cls,
-                        requirements: dict[str, Type],
+                        requirements: dict[str, DependencyRequirement],
                         overrides: Optional[dict[str, Any]] = None) -> Callable[[], Any]:
+
+        overrides = overrides or {}
+
         def factory():
-            needed_from_container = {
-                name: type_
-                for name, type_ in requirements.items()
-                if name not in overrides
-            }
+            needed_from_container = {}
+            for name, requirement in requirements.items():
+                if overrides and name in overrides:
+                    continue
+                if self.get_key_by_type(requirement.type) is None and requirement.has_default:
+                    continue
+                needed_from_container[name] = requirement
+
             resolved_dependencies = self._get_resolved_dependencies(needed_from_container)
             return cls(**resolved_dependencies, **overrides)
 

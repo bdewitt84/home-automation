@@ -7,7 +7,7 @@ from typing import Type, Any
 from pydantic import BaseModel
 
 from app.di.builder import ContainerBuilder
-from app.models.component import ComponentMetadata, ComponentRegistration
+from app.models.component import ComponentMetadata, ComponentRegistration, DependencyRequirement
 from app.exceptions.di import (
     GraphValidationError,
     CycleDetectedError,
@@ -227,23 +227,25 @@ def test_validate_graph_no_cycle():
     builder = ContainerBuilder(container=container, registry={}, config={})
     builder._component_graph = {
         "DependencyE": {
-            "requires": [],
+            "requires": {},
             "is_dependency": True,
         },
         "DependencyD": {
-            "requires": [],
+            "requires": {},
             "is_dependency": True,
         },
         "DependencyC": {
-            "requires": ["DependencyE"],
+            "requires": {"DependencyE": "DependencyE"},
             "is_dependency": True,
         },
         "DependencyB": {
-            "requires": ["DependencyD", "DependencyE"],
+            "requires": {"DependencyD": "DependencyD",
+                         "DependencyE": "DependencyE"},
             "is_dependency": True,
         },
         "DependencyA": {
-            "requires": ["DependencyB", "DependencyC"],
+            "requires": {"DependencyB": "DependencyB",
+                         "DependencyC": "DependencyC"},
             "is_dependency": False,
         }
     }
@@ -256,15 +258,15 @@ def test_validate_graph_with_cycle():
     builder = ContainerBuilder(container=container, registry={}, config={})
     builder._component_graph = {
         "DependencyC": {
-            "requires": ["DependencyB"],
+            "requires": {"DependencyB": "DependencyB"},
             "is_dependency": True,
         },
         "DependencyB": {
-            "requires": ["DependencyA"],
+            "requires": {"DependencyA": "DependencyA"},
             "is_dependency": True,
         },
         "DependencyA": {
-            "requires": ["DependencyC"],
+            "requires": {"DependencyC": "DependencyC"},
             "is_dependency": True,
         }
     }
@@ -278,11 +280,11 @@ def test_validate_graph_depends_on_non_dependency():
     builder = ContainerBuilder(container=container, registry={}, config={})
     builder._component_graph = {
         "DependencyB": {
-            "requires": ["DependencyA"],
+            "requires": {"DependencyA": "DependencyA"},
             "is_dependency": True,
         },
         "DependencyA": {
-            "requires": [],
+            "requires": {},
             "is_dependency": False,
         }
     }
@@ -313,7 +315,12 @@ def test_build_component_graph():
                     metadata=ComponentMetadata(
                         key=FakeNonDependency.__name__,
                         type=FakeNonDependency,
-                        requirements={"FakeDependency": FakeDependency},
+                        requirements={
+                            "FakeDependency": DependencyRequirement(
+                                type=FakeDependency,
+                                has_default=False
+                            )
+                        },
                         is_dependency=False,
                     ),
                     factory=lambda: FakeNonDependency(),
@@ -341,11 +348,11 @@ def test_build_component_graph():
 
     assert builder._component_graph == {
         FakeDependency.__name__: {
-            "requires": [],
+            "requires": {},
             "is_dependency": True,
         },
         FakeNonDependency.__name__: {
-            "requires": ["FakeDependency"],
+            "requires": {"FakeDependency": "FakeDependency"},
             "is_dependency": False,
         }
     }
@@ -371,7 +378,12 @@ def test_build_component_graph_dependency_not_found():
                     metadata=ComponentMetadata(
                         key=FakeDependency.__name__,
                         type=FakeDependency,
-                        requirements={"FakeNonDependency": FakeNonDependency},
+                        requirements={
+                            "FakeNonDependency": DependencyRequirement(
+                                type=FakeNonDependency,
+                                has_default=False
+                            )
+                        },
                         is_dependency=True,
                     ),
                     factory=lambda: FakeDependency(),

@@ -3,6 +3,7 @@
 from typing import Type, Any, Callable
 from inspect import signature
 from app.exceptions.inspection import AnnotationNotFoundError
+from app.models.component import DependencyRequirement
 
 
 class Introspector:
@@ -11,7 +12,7 @@ class Introspector:
 
     def get_requirements(self,
                          target: Type[Any] | Callable,
-                         ) -> dict[str, Type]:
+                         ) -> dict[str, DependencyRequirement]:
 
         sig = signature(target)
         requirements = {}
@@ -25,6 +26,9 @@ class Introspector:
             if arg_type is None:
                 raise ValueError(f"Parameter {name} must not have annotation 'None'")
 
-            requirements[name] = arg_type
+            requirements[name] = DependencyRequirement(
+                type=arg_type,
+                has_default=(param.default is not param.empty),
+            )
 
         return requirements

@@ -13,11 +13,17 @@ class Scopes:
 
 
 @dataclass(frozen=True)
+class DependencyRequirement:
+    type: Type[Any]
+    has_default: bool = False
+
+
+@dataclass(frozen=True)
 class ComponentMetadata:
     key: str
     type: Type[Any]
     scope: str = Scopes.SINGLETON
-    requirements: dict[str, Type[Any]] = field(default_factory=dict)
+    requirements: dict[str, DependencyRequirement] = field(default_factory=dict)
     settings_cls: Type[BaseModel] | None = None
     is_dependency: bool = False
     lifecycle: int = 0

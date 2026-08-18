@@ -1,14 +1,17 @@
 # tests/test_container.py
-from typing import Type, Any
+
 import pytest
 from unittest.mock import Mock
+from typing import Type
 
-from app.exceptions.di import (
-    DuplicateKeyError, FactoryNotFoundError, TypeNotFoundError,
-    CycleDetectedError, DependencyNotFoundError
-)
 from app.di.container import DependencyContainer
-from app.models.component import ComponentMetadata
+from app.models.component import ComponentMetadata, DependencyRequirement
+from app.exceptions.di import (
+    DuplicateKeyError,
+    FactoryNotFoundError,
+    TypeNotFoundError,
+    DependencyNotFoundError,
+)
 
 
 class MockDependency: pass
@@ -35,7 +38,7 @@ def metadata_is_dependency():
         is_dependency=True,
     )
 
-def generate_metadata(cls: Type, requirements: dict[str, Type[Any]] = None, is_dependency=True):
+def generate_metadata(cls: Type, requirements: dict[str, DependencyRequirement] = None, is_dependency=True):
     return ComponentMetadata(
         key=cls.__name__,
         type=cls,
@@ -62,6 +65,38 @@ def test_register_factory_success(container):
         metadata=Mock()
     )
     assert container.resolve('test') == instance
+
+
+def test_register_factory_with_default(container):
+
+    class DefaultDependency: pass
+
+    default_dep_instance = DefaultDependency()
+
+    class FakeComponent:
+        def __init__(self, default_dep: DefaultDependency=default_dep_instance):
+            self.default_dep = default_dep
+
+    metadata = generate_metadata(
+        cls=FakeComponent,
+        requirements={
+            "default_dep": DependencyRequirement(
+                type=DefaultDependency,
+                has_default=True,
+            )
+        }
+    )
+
+    container.register_component(
+        key="test",
+        cls=FakeComponent,
+        metadata=metadata,
+        overrides={},
+    )
+
+    result: FakeComponent = container.resolve("test")
+
+    assert result.default_dep is default_dep_instance
 
 
 def test_register_factory_duplicate_key(container):
@@ -94,8 +129,14 @@ def test_resolve_success_recursive(container):
             self.dep_b = dep_b
 
     metadata_c = generate_metadata(DependencyC)
-    metadata_b = generate_metadata(DependencyB, {"dep_c": DependencyC})
-    metadata_a = generate_metadata(DependencyA, {"dep_b": DependencyB})
+    metadata_b = generate_metadata(
+        cls=DependencyB,
+        requirements={"dep_c": DependencyRequirement(type=DependencyC)}
+    )
+    metadata_a = generate_metadata(
+        cls=DependencyA,
+        requirements={"dep_b": DependencyRequirement(type=DependencyB)}
+    )
 
     for meta in [metadata_c, metadata_b, metadata_a]:
         container.register_component(key=meta.key, cls=meta.type, metadata=meta, overrides={})
@@ -182,7 +223,10 @@ def test_get_resolved_dependencies(container):
         metadata=generate_metadata(DependencyB)
     )
 
-    result = container._get_resolved_dependencies({"parameter_a": DependencyA, "parameter_b": DependencyB})
+    result = container._get_resolved_dependencies({
+        "parameter_a": DependencyRequirement(DependencyA),
+        "parameter_b": DependencyRequirement(DependencyB),
+    })
 
     assert isinstance(result["parameter_a"], DependencyA)
     assert isinstance(result["parameter_b"], DependencyB)
@@ -275,5 +319,3 @@ def test_register_component_invalid_metadata(container):
 def test_register_self(container):
     container.register_self()
     assert isinstance(container.resolve(container.__class__.__name__), DependencyContainer)
-
-

@@ -8,7 +8,7 @@ from app.di.registry import (
 from app.exceptions.di import (
     DependencyNotFoundError,
     CycleDetectedError,
-    IllegalDependencyError,
+    IllegalDependencyError, GraphValidationError,
 )
 from app.models.config import Config
 
@@ -74,15 +74,21 @@ class ContainerBuilder:
 
     def _build_dependency_graph(self) -> None:
         for key, record in self._container.get_all_records().items():
-            dependencies = []
+            dependencies: dict[str, str] = {}
 
-            for req_name, req_type in record.metadata.requirements.items():
-                if req_name in record.overrides:
+            for name, requirement in record.metadata.requirements.items():
+                if name in record.overrides:
                     continue
-                req_key = self._container.get_key_by_type(req_type)
+
+                req_key = self._container.get_key_by_type(requirement.type)
+
                 if req_key is None:
-                    raise DependencyNotFoundError(f"Dependency '{req_name}' not found for component '{key}'")
-                dependencies.append(req_key)
+                    if requirement.has_default:
+                        continue
+                    raise DependencyNotFoundError(f"Dependency '{name}' not found for component '{key}'")
+
+                dependencies[name] = req_key
+
             self._component_graph[key] = {
                 "requires": dependencies,
                 "is_dependency": record.metadata.is_dependency,
@@ -94,14 +100,17 @@ class ContainerBuilder:
         if cur in path:
             raise CycleDetectedError(f"Cycle detected validating {cur}: {' -> '.join(path + [cur])}")
 
-        node = self._component_graph[cur]
+        try:
+            node = self._component_graph[cur]
+        except KeyError as e:
+            raise GraphValidationError(f"Dependency '{cur}' not found") from e
 
         if not node["is_dependency"] and len(path) > 0:
             parent = path[-1]
             raise IllegalDependencyError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
 
         path.append(cur)
-        for req_key in node["requires"]:
+        for req_key in node["requires"].values():
             self._validate_graph_dfs_rec(req_key, path, safe)
         safe.add(cur)
         path.pop()

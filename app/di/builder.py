@@ -1,4 +1,5 @@
 # ./app/di/builder.py
+from typing import Any
 
 from app.di.container import DependencyContainer
 from app.di.registry import (
@@ -11,20 +12,27 @@ from app.exceptions.di import (
     IllegalDependencyError, GraphValidationError,
 )
 from app.models.config import Config
+from components.infrastructure.system_logger import SystemLogger
 
 
 class ContainerBuilder:
     def __init__(self,
                  container: DependencyContainer,
                  registry: MetadataRegistry,
-                 config: Config):
+                 logger: SystemLogger,
+                 config: Config,
+                 core: list[Any] = None,):
+
         self._container = container
         self._registry: MetadataRegistry = registry
+        self._logger = logger
+        self._core = core or []
         self._config = config
         self._component_graph: dict[str, dict] = {}
 
     def build(self) -> None:
         self._container.register_self()
+        self._logger.info("Building container...")
         self._wire_infrastructure()
         self._wire_user_components()
         self._build_dependency_graph()

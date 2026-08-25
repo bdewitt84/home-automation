@@ -1,12 +1,15 @@
 # ./tests/di/test_builder.py
+
+
 from unittest.mock import Mock
 
 import pytest
 from typing import Type, Any
-
 from pydantic import BaseModel
 
 from app.di.builder import ContainerBuilder
+from app.di.container import DependencyContainer
+from app.di.registry import MetadataRegistry
 from app.models.component import ComponentMetadata, ComponentRegistration, DependencyRequirement
 from app.exceptions.di import (
     GraphValidationError,
@@ -14,6 +17,26 @@ from app.exceptions.di import (
     DependencyNotFoundError,
 )
 from app.models.config import Config, ConfigComponent
+from components.infrastructure.system_logger import SystemLogger
+
+
+@pytest.fixture
+def create_builder():
+
+    def builder_factory(container: DependencyContainer = None,
+                        registry: MetadataRegistry = None,
+                        logger: SystemLogger = None,
+                        config: Config = None,
+                        core: list | None = None):
+        return ContainerBuilder(
+            container=container or Mock(),
+            registry=registry or MetadataRegistry,
+            logger=logger or Mock(),
+            config=config or {},
+            core=core,
+        )
+
+    return builder_factory
 
 
 def generate_metadata(cls: Type, requirements: dict[str, Type[Any]] = None, is_dependency=True):
@@ -25,13 +48,17 @@ def generate_metadata(cls: Type, requirements: dict[str, Type[Any]] = None, is_d
     )
 
 
-def test_wire_infrastructure():
-    # We need a builder with a mock container
+def test_wire_infrastructure(create_builder):
+
+    # We need a mock container we can access with our asserts
     mock_container = Mock()
 
-    # We need a metadata registry with infrastructure components ready
-    class MockDependency: pass
-    class MockNotDependency: pass
+    # We also need a metadata registry with infrastructure components ready
+    class MockDependency:
+        pass
+
+    class MockNotDependency:
+        pass
 
     mock_metadata_dependency = ComponentMetadata(
         key=MockDependency.__name__,
@@ -50,14 +77,15 @@ def test_wire_infrastructure():
         MockNotDependency: mock_metadata_not_dependency,
     }
 
-    builder = ContainerBuilder(container=mock_container,
-                               registry=mock_registry,
-                               config={})
+    builder = create_builder(
+        container=mock_container,
+        registry=mock_registry,
+    )
 
     builder._wire_infrastructure()
 
     """
-    Components with the `is_depoendency` flag set to True get wired
+    Components with the `is_dependency` flag set to True get wired
     as infrastructure. When this flag is set to false, they are not
     considered infrastructure, so we only expect one call to
     `register_component`
@@ -70,11 +98,13 @@ def test_wire_infrastructure():
     )
 
 
-def test_wire_infrastructure_raises():
-    class MockDependency: pass
+def test_wire_infrastructure_raises(create_builder):
+    class MockDependency:
+        pass
+
     mock_metadata = ComponentMetadata(
         key=MockDependency.__name__,
-        type='bad_data', # type: ignore
+        type='bad_data',  # type: ignore
         is_dependency=True,
     )
     mock_registry = {
@@ -84,29 +114,34 @@ def test_wire_infrastructure_raises():
     mock_container = Mock()
     mock_container.register_component.side_effect = Exception()
 
-    builder = ContainerBuilder(
+    builder = create_builder(
         container=mock_container,
         registry=mock_registry,
-        config={},
     )
 
     with pytest.raises(RuntimeError):
         builder._wire_infrastructure()
 
 
-def test_wire_user_components():
+def test_wire_user_components(create_builder):
 
-    class MockDependency: pass
+    class MockDependency:
+        pass
+
     mock_dependency_metadata = ComponentMetadata(
         key=MockDependency.__name__,
         type=MockDependency,
         is_dependency=True,
     )
 
-    class MockSettings(BaseModel): pass
+    class MockSettings(BaseModel):
+        pass
+
     mock_settings_instance = MockSettings()
 
-    class MockUserComponent: pass
+    class MockUserComponent:
+        pass
+
     mock_user_component_metadata = ComponentMetadata(
         key=MockUserComponent.__name__,
         type=MockUserComponent,
@@ -134,7 +169,7 @@ def test_wire_user_components():
         }
     )
 
-    builder = ContainerBuilder(
+    builder = create_builder(
         container=mock_container,
         registry=mock_registry,
         config=mock_user_config,
@@ -150,12 +185,13 @@ def test_wire_user_components():
     )
 
 
-def test_wire_user_components_no_settings():
+def test_wire_user_components_no_settings(create_builder):
     """
     Test the behavior of the wire_user_components method when a component with no settings class is provided.
     """
 
-    class MockDependency: pass
+    class MockDependency:
+        pass
 
     mock_dependency_metadata = ComponentMetadata(
         key=MockDependency.__name__,
@@ -167,12 +203,13 @@ def test_wire_user_components_no_settings():
     mock_settings_cls = Mock()
     mock_settings_cls.return_value = mock_settings_instance
 
-    class MockUserComponent: pass
+    class MockUserComponent:
+        pass
 
     mock_user_component_metadata = ComponentMetadata(
         key=MockUserComponent.__name__,
         type=MockUserComponent,
-        settings_cls=None, # type: ignore
+        settings_cls=None,  # type: ignore
         is_dependency=False,
     )
 
@@ -197,7 +234,7 @@ def test_wire_user_components_no_settings():
         }
     )
 
-    builder = ContainerBuilder(
+    builder = create_builder(
         container=mock_container,
         registry=mock_registry,
         config=mock_user_config,
@@ -213,7 +250,7 @@ def test_wire_user_components_no_settings():
     )
 
 
-def test_validate_graph_no_cycle():
+def test_validate_graph_no_cycle(create_builder):
     """
              D
            /
@@ -223,8 +260,7 @@ def test_validate_graph_no_cycle():
        \   /
          C
     """
-    container = Mock()
-    builder = ContainerBuilder(container=container, registry={}, config={})
+    builder = create_builder()
     builder._component_graph = {
         "DependencyE": {
             "requires": {},
@@ -253,9 +289,8 @@ def test_validate_graph_no_cycle():
     builder._validate_dependency_graph()
 
 
-def test_validate_graph_with_cycle():
-    container = Mock()
-    builder = ContainerBuilder(container=container, registry={}, config={})
+def test_validate_graph_with_cycle(create_builder):
+    builder = create_builder()
     builder._component_graph = {
         "DependencyC": {
             "requires": {"DependencyB": "DependencyB"},
@@ -275,9 +310,8 @@ def test_validate_graph_with_cycle():
         builder._validate_dependency_graph()
 
 
-def test_validate_graph_depends_on_non_dependency():
-    container = Mock()
-    builder = ContainerBuilder(container=container, registry={}, config={})
+def test_validate_graph_depends_on_non_dependency(create_builder):
+    builder = create_builder()
     builder._component_graph = {
         "DependencyB": {
             "requires": {"DependencyA": "DependencyA"},
@@ -289,19 +323,21 @@ def test_validate_graph_depends_on_non_dependency():
         }
     }
 
-    with pytest.raises(GraphValidationError) as e:
+    with pytest.raises(GraphValidationError):
         builder._validate_dependency_graph()
 
 
-def test_build_component_graph():
-    class FakeDependency: pass
+def test_build_component_graph(create_builder):
+    class FakeDependency:
+        pass
 
-    class FakeNonDependency: pass
+    class FakeNonDependency:
+        pass
 
-    class FakeContainer():
+    class FakeContainer:
         def __init__(self):
             self._records = {
-                FakeDependency.__name__ : ComponentRegistration(
+                FakeDependency.__name__: ComponentRegistration(
                     metadata=ComponentMetadata(
                         key=FakeDependency.__name__,
                         type=FakeDependency,
@@ -311,7 +347,7 @@ def test_build_component_graph():
                     factory=lambda: FakeDependency(),
                     overrides={}
                 ),
-                FakeNonDependency.__name__ : ComponentRegistration(
+                FakeNonDependency.__name__: ComponentRegistration(
                     metadata=ComponentMetadata(
                         key=FakeNonDependency.__name__,
                         type=FakeNonDependency,
@@ -338,10 +374,8 @@ def test_build_component_graph():
         def get_key_by_type(self, cls):
             return self._type_to_key[cls]
 
-    builder = ContainerBuilder(
-        container=FakeContainer(), # type: ignore
-        registry={},
-        config={}
+    builder = create_builder(
+        container=FakeContainer(),  # type: ignore
     )
 
     builder._build_dependency_graph()
@@ -358,7 +392,7 @@ def test_build_component_graph():
     }
 
 
-def test_build_component_graph_dependency_not_found():
+def test_build_component_graph_dependency_not_found(create_builder):
 
     """
     When a component is registered with `is_dependency=False`, it will not
@@ -367,9 +401,11 @@ def test_build_component_graph_dependency_not_found():
     mapping, and the builder must raise an error.
     """
 
-    class FakeDependency: pass
+    class FakeDependency:
+        pass
 
-    class FakeNonDependency: pass
+    class FakeNonDependency:
+        pass
 
     class FakeContainer:
         def __init__(self):
@@ -409,10 +445,8 @@ def test_build_component_graph_dependency_not_found():
         def get_key_by_type(self, cls):
             return self._type_to_key.get(cls, None)
 
-    builder = ContainerBuilder(
+    builder = create_builder(
         container=FakeContainer(),  # type: ignore
-        registry={},
-        config={}
     )
 
     with pytest.raises(DependencyNotFoundError):

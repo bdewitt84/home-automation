@@ -27,6 +27,12 @@ class ASyncEventBus(LifecycleManagement):
         # Add the handler to our subscribers list for this event
         self._subscribers[event_type].append(handler)
 
+    def unsubscribe(self, event_type: Type[BaseEvent], handler: EventHandler) -> None:
+        try:
+            self._subscribers[event_type].remove(handler)
+        except (ValueError, KeyError):
+            raise NotSubscribedError(f"Handler '{handler}' not subscribed to event type '{event_type}'")
+
     def publish(self, event: BaseEvent) -> None:
         self._queue.put_nowait(event)
 

@@ -1,11 +1,16 @@
 import asyncio
-from typing import Callable, Type, Any
+from typing import Callable, Type, Any, TypeVar
 from events.base import BaseEvent
 from interfaces import LifecycleManagement
 from app.di.registry import component
 
 
-EventHandler = Callable[[BaseEvent], Any]
+E = TypeVar('E', bound=BaseEvent)
+EventHandler = Callable[[E], Any]
+
+
+class NotSubscribedError(Exception): pass
+
 
 @component(is_dependency=True)
 class ASyncEventBus(LifecycleManagement):
@@ -15,7 +20,7 @@ class ASyncEventBus(LifecycleManagement):
         self._processing_task: asyncio.Task | None = None
 
     def subscribe(self, event_type: Type[BaseEvent], handler: EventHandler) -> None:
-        # If don't know about this event, create a list of handlers for it
+        # If we don't know about this event, create a list of handlers for it
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
 

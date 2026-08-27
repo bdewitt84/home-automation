@@ -16,6 +16,9 @@ from app.di.registry import METADATA_REGISTRY
 from app.di.builder import ContainerBuilder
 from app.di.container import DependencyContainer
 from app.routing.builder import RouteBuilder
+from components.infrastructure.console_log_sink import ConsoleLogSink
+from components.infrastructure.event_bus import ASyncEventBus
+from components.infrastructure.system_logger import SystemLogger
 from config.settings import app_settings
 
 
@@ -25,6 +28,10 @@ async def lifespan(app: FastAPI):
     # --- Bootstrap phase ---
     try:
         # --- Init Core ---
+        event_bus = ASyncEventBus()
+        log_sink = ConsoleLogSink(event_bus=event_bus)
+        logger = SystemLogger(bus=event_bus)
+
         manager = init_lifecycle_manager(app=app)
         scanner = Scanner()
 
@@ -45,7 +52,8 @@ async def lifespan(app: FastAPI):
         container = DependencyContainer()
         container_builder = ContainerBuilder(container=container,
                                              registry=METADATA_REGISTRY,
-                                             config=config, )
+                                             config=config,
+                                             logger=logger,)
 
         container_builder.build()
 

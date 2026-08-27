@@ -30,6 +30,12 @@ class ContainerBuilder:
         self._build_dependency_graph()
         self._validate_dependency_graph()
 
+    def _wire_core(self, instances: list[Any]) -> None:
+        self._logger.info(msg="\tWiring core...")
+        for instance in instances:
+            self._container.register_instance(key=instance.__class__.__name__,
+                                              instance=instance)
+
     def _wire_infrastructure(self) -> None:
         for _component_cls, metadata in self._registry.items():
             if metadata.is_dependency:

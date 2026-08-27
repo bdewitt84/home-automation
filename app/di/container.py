@@ -140,6 +140,18 @@ class DependencyContainer:
                               overrides={},
                               metadata=metadata,)
 
+    def register_instance(self, key: str, instance: Any) -> None:
+        self.register_factory(
+            key=key,
+            factory=lambda: instance,
+            overrides={},
+            metadata=ComponentMetadata(
+                key=key,
+                type=instance.__class__,
+                is_dependency=True
+            )
+        )
+
     def get_record(self, key: str) -> ComponentRegistration:
         return self._registry.get_record(key)
 

@@ -1,8 +1,8 @@
 import asyncio
 from typing import Callable, Type, Any, TypeVar
+
 from events.base import BaseEvent
 from interfaces import LifecycleManagement
-from app.di.registry import component
 
 
 E = TypeVar('E', bound=BaseEvent)
@@ -12,7 +12,6 @@ EventHandler = Callable[[E], Any]
 class NotSubscribedError(Exception): pass
 
 
-@component(is_dependency=True)
 class ASyncEventBus(LifecycleManagement):
     def __init__(self):
         self._subscribers: dict[Type[BaseEvent], list[EventHandler]] = {}

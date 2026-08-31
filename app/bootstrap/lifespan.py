@@ -32,6 +32,9 @@ async def lifespan(app: FastAPI):
         log_sink = ConsoleLogSink(event_bus=event_bus)
         logger = SystemLogger(bus=event_bus)
 
+        await event_bus.start()
+        await log_sink.start()
+
         manager = init_lifecycle_manager(app=app)
         scanner = Scanner()
 
@@ -47,13 +50,14 @@ async def lifespan(app: FastAPI):
         loader = Loader(parser=parser.parse_config)
         config = loader.load_from_path(path=app_settings.CONFIG_FILE_PATH)
 
-
         # --- Wire Components ---
         container = DependencyContainer()
+        core = [container, event_bus, log_sink, logger]
         container_builder = ContainerBuilder(container=container,
                                              registry=METADATA_REGISTRY,
                                              config=config,
-                                             logger=logger,)
+                                             logger=logger,
+                                             core=core)
 
         container_builder.build()
 
@@ -72,4 +76,6 @@ async def lifespan(app: FastAPI):
 
     # -- Shutdown phase ---
     finally:
+        await event_bus.stop()
+        await log_sink.stop()
         await shutdown_state(app=app)

@@ -31,8 +31,8 @@ class ContainerBuilder:
         self._component_graph: dict[str, dict] = {}
 
     def build(self) -> None:
-        self._container.register_self()
         self._logger.info("Building container...")
+        self._wire_core(self._core)
         self._wire_infrastructure()
         self._wire_user_components()
         self._build_dependency_graph()
@@ -45,6 +45,7 @@ class ContainerBuilder:
                                               instance=instance)
 
     def _wire_infrastructure(self) -> None:
+        self._logger.info(msg="\tWiring infrastructure...")
         for _component_cls, metadata in self._registry.items():
             if metadata.is_dependency:
                 try:
@@ -60,7 +61,7 @@ class ContainerBuilder:
                         f"Critical wiring failure for infrastructure component '{_component_cls.__name__}': {e}") from e
 
     def _wire_user_components(self) -> None:
-
+        self._logger.info(msg="\tWiring user components...")
         for component_name, component_data in self._config.components.items():
 
             metadata = self._get_metadata_by_key(component_data.type)
@@ -87,6 +88,7 @@ class ContainerBuilder:
                 return metadata
 
     def _build_dependency_graph(self) -> None:
+        self._logger.info(msg="\tBuilding dependency graph...")
         for key, record in self._container.get_all_records().items():
             dependencies: dict[str, str] = {}
 
@@ -130,6 +132,7 @@ class ContainerBuilder:
         path.pop()
 
     def _validate_dependency_graph(self) -> None:
+        self._logger.info("\tValidating dependency graph...")
         path: list[str] = []
         safe: set = {self.__class__.__name__}
         for key in self._component_graph.keys():

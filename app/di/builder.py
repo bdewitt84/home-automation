@@ -1,6 +1,9 @@
 # ./app/di/builder.py
+
 from typing import Any
 
+from app.models.config import Config
+from components.infrastructure.system_logger import SystemLogger
 from app.di.container import DependencyContainer
 from app.di.registry import (
     ComponentMetadata,
@@ -9,7 +12,8 @@ from app.di.registry import (
 from app.exceptions.di import (
     DependencyNotFoundError,
     CycleDetectedError,
-    IllegalDependencyError, GraphValidationError,
+    IllegalDependencyError,
+    GraphValidationError,
 )
 from app.models.config import Config
 from components.infrastructure.system_logger import SystemLogger

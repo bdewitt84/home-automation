@@ -1,7 +1,6 @@
 # ./components/infrastructure/console_log_sink.py
 
 from typing import Callable, Any
-
 from pydantic import BaseModel
 
 from events.logging import LogEvent

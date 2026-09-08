@@ -1,3 +1,5 @@
+# ./components/infrastructure/event_bus.py
+
 import asyncio
 from typing import Callable, Type, Any, TypeVar
 

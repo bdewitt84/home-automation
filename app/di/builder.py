@@ -134,6 +134,6 @@ class ContainerBuilder:
     def _validate_dependency_graph(self) -> None:
         self._logger.info("\tValidating dependency graph...")
         path: list[str] = []
-        safe: set = {self.__class__.__name__}
+        safe: set = set()
         for key in self._component_graph.keys():
             self._validate_graph_dfs_rec(key, path, safe)

@@ -57,5 +57,14 @@ def infrastructure(key:str=None, settings_cls=None,  lifecycle: int=0) -> Any:
     )
 
 
+def user_component(key:str=None, settings_cls=None, lifecycle: int=0) -> Any:
+    return component(
+        key=key,
+        settings_cls=settings_cls,
+        is_dependency=False,
+        lifecycle=lifecycle,
+    )
+
+
 def clear_registry():
     METADATA_REGISTRY.clear()

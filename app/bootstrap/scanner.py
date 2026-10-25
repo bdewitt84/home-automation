@@ -6,14 +6,22 @@ from pkgutil import ModuleInfo
 from typing import Callable, Iterator, Iterable
 from types import ModuleType
 
+from components.infrastructure.system_logger import SystemLogger
+
+
+# TODO: create protocols for pacakge_walker and module_importer
+
 
 class Scanner:
     def __init__(self,
-                 package_walker: Callable[[Iterable[str], str], Iterator[ModuleInfo]]=pkgutil.walk_packages,
-                 module_importer: Callable[[str], ModuleType]=importlib.import_module, ):
+                 logger: SystemLogger,
+                 package_walker: Callable[[Iterable[str], str], Iterator[ModuleInfo]] = pkgutil.walk_packages,
+                 module_importer: Callable[[str], ModuleType] = importlib.import_module,
+                 ):
         self._package_walker = package_walker
         self._module_importer = module_importer
         self._scanned_modules: list[str] = []
+        self._logger = logger
 
     def scan_packages(self, name: list[str]) -> list[str]:
         """
@@ -43,7 +51,7 @@ class Scanner:
         """
         for module in self._scanned_modules:
             self._module_importer(module)
-            print(f"Scanner: Imported '{module}'")
+            self._logger.info(f"Imported '{module}'")
         self.clear()
 
     def _add_modules(self, modules: list[str]):

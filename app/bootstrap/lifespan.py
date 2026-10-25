@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
         await event_bus.start()
         await log_sink.start()
 
-        scanner = Scanner()
+        scanner = Scanner(logger=logger)
         manager = init_lifecycle_manager(app=app)
 
         # --- Scan Components ---

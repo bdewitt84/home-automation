@@ -1,4 +1,5 @@
 # tests/test_discovery_and_resolution.py
+from unittest.mock import Mock
 
 import pytest
 import sys
@@ -39,7 +40,7 @@ def test_discovery_and_resolution(container, tmp_path):
 
     sys.path.insert(0, str(tmp_path))
     importlib.invalidate_caches()
-    scanner = Scanner()
+    scanner = Scanner(logger=Mock())
 
     try:
         scanner.scan_packages(['test_components'])

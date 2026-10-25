@@ -27,6 +27,11 @@ def clean_dummy_modules():
 
 
 @pytest.fixture
+def mock_logger():
+    return Mock()
+
+
+@pytest.fixture
 def mock_importer():
     importer = Mock()
     fake_package = Mock()
@@ -50,10 +55,11 @@ def mock_walker():
 
 
 @pytest.fixture
-def scanner(mock_walker, mock_importer):
+def scanner(mock_walker, mock_importer, mock_logger):
     return Scanner(
         package_walker=mock_walker,
-        module_importer=mock_importer
+        module_importer=mock_importer,
+        logger=mock_logger,
     )
 
 
@@ -99,16 +105,16 @@ def test_scanner_import_scanned_modules(scanner, mock_walker, mock_importer):
     mock_importer.assert_any_call("components.services.media")
 
 
-def test_scanner_scan_real_packages():
-    scanner = Scanner()
+def test_scanner_scan_real_packages(mock_logger):
+    scanner = Scanner(logger=mock_logger)
     paths = [TEST_MODULE_PREFIX]
     result = scanner.scan_packages(paths)
     assert TEST_MODULE_PREFIX + '.root_component' in result
     assert TEST_MODULE_PREFIX + '.nested.deep_component' in result
 
 
-def test_scanner_import_real_modules(clean_dummy_modules):
-    scanner = Scanner()
+def test_scanner_import_real_modules(mock_logger, clean_dummy_modules):
+    scanner = Scanner(mock_logger)
     modules = [TEST_MODULE_PREFIX + '.root_component',
                TEST_MODULE_PREFIX + '.nested.deep_component']
     scanner._add_modules(modules)
@@ -123,8 +129,8 @@ def test_scanner_import_real_modules(clean_dummy_modules):
 
 
 @pytest.mark.integration
-def test_scanner_scan_and_import_real_modules(clean_dummy_modules):
-    scanner = Scanner()
+def test_scanner_scan_and_import_real_modules(mock_logger, clean_dummy_modules):
+    scanner = Scanner(mock_logger)
     paths = [TEST_MODULE_PREFIX]
     scanned = scanner.scan_packages(paths)
 

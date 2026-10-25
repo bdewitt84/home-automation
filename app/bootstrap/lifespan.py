@@ -2,6 +2,7 @@
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+import traceback
 
 from app.bootstrap.parser import ConfigParser
 from app.bootstrap.scanner import Scanner
@@ -74,8 +75,13 @@ async def lifespan(app: FastAPI):
 
         yield # control back to fastAPI
 
+    except Exception as e:
+        logger.error(f"Fatal framework error: {e}\n{traceback.format_exc()}")
+        raise
+
     # -- Shutdown phase ---
     finally:
+        # TODO: Resolve possible reference before assignment
         await event_bus.stop()
         await log_sink.stop()
         await shutdown_state(app=app)

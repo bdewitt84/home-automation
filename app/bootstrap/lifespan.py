@@ -36,8 +36,8 @@ async def lifespan(app: FastAPI):
         await event_bus.start()
         await log_sink.start()
 
-        manager = init_lifecycle_manager(app=app)
         scanner = Scanner()
+        manager = init_lifecycle_manager(app=app)
 
         # --- Scan Components ---
         scanner.scan_packages([
@@ -64,7 +64,6 @@ async def lifespan(app: FastAPI):
 
         wire_lifecycle_management(container=container,
                                   manager=manager)
-
 
         # --- Build Routes ---
         builder = RouteBuilder(app=app,

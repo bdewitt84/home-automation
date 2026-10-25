@@ -14,7 +14,8 @@ from app.exceptions.di import (
 )
 
 
-class MockDependency: pass
+class MockDependency:
+    pass
 
 
 @pytest.fixture
@@ -30,6 +31,7 @@ def metadata_is_not_dependency():
         is_dependency=False,
     )
 
+
 @pytest.fixture
 def metadata_is_dependency():
     return ComponentMetadata(
@@ -37,6 +39,7 @@ def metadata_is_dependency():
         type=MockDependency,
         is_dependency=True,
     )
+
 
 def generate_metadata(cls: Type, requirements: dict[str, DependencyRequirement] = None, is_dependency=True):
     return ComponentMetadata(
@@ -68,13 +71,13 @@ def test_register_factory_success(container):
 
 
 def test_register_factory_with_default(container):
-
-    class DefaultDependency: pass
+    class DefaultDependency:
+        pass
 
     default_dep_instance = DefaultDependency()
 
     class FakeComponent:
-        def __init__(self, default_dep: DefaultDependency=default_dep_instance):
+        def __init__(self, default_dep: DefaultDependency = default_dep_instance):
             self.default_dep = default_dep
 
     metadata = generate_metadata(
@@ -106,19 +109,25 @@ def test_register_factory_duplicate_key(container):
 
 
 def test_register_factory_already_registered(container, metadata_is_dependency):
-    container.register_factory(key=metadata_is_dependency.key, factory=lambda: None, overrides={}, metadata=metadata_is_dependency)
+    container.register_factory(
+        key=metadata_is_dependency.key, factory=lambda: None, overrides={}, metadata=metadata_is_dependency
+    )
     with pytest.raises(DuplicateKeyError):
-        container.register_factory(key='different_key', factory=lambda: None, overrides={}, metadata=metadata_is_dependency)
+        container.register_factory(
+            key='different_key', factory=lambda: None, overrides={}, metadata=metadata_is_dependency
+        )
 
 
 def test_resolve_success_flat(container, metadata_is_not_dependency):
-    factory = lambda: None
+    def factory():
+        return None
     container.register_factory(key='test', factory=factory, overrides={}, metadata=metadata_is_not_dependency)
     assert container.resolve('test') == factory()
 
 
 def test_resolve_success_recursive(container):
-    class DependencyC: pass
+    class DependencyC:
+        pass
 
     class DependencyB:
         def __init__(self, dep_c: DependencyC):
@@ -155,7 +164,8 @@ def test_resolve_not_registered(container):
 
 def test_resolve_by_type_success(container, metadata_is_dependency):
     instance = Mock()
-    container.register_factory(key=metadata_is_dependency.key, factory=lambda: instance, overrides={}, metadata=metadata_is_dependency)
+    container.register_factory(key=metadata_is_dependency.key, factory=lambda: instance, overrides={},
+                               metadata=metadata_is_dependency)
     assert container.resolve_by_type(MockDependency) == instance
 
 
@@ -206,9 +216,11 @@ def test_get_lifecycle_keys(container):
 
 
 def test_get_resolved_dependencies(container):
-    class DependencyA: pass
+    class DependencyA:
+        pass
 
-    class DependencyB: pass
+    class DependencyB:
+        pass
 
     container.register_factory(
         key="DependencyA",
@@ -233,9 +245,11 @@ def test_get_resolved_dependencies(container):
 
 
 def test_validate_pass_no_overrides(container):
-    class DependencyA: pass
+    class DependencyA:
+        pass
 
-    class DependencyB: pass
+    class DependencyB:
+        pass
 
     for cls in [DependencyA, DependencyB]:
         container.register_factory(
@@ -249,9 +263,11 @@ def test_validate_pass_no_overrides(container):
 
 
 def test_validate_pass_with_override(container):
-    class DependencyA: pass
+    class DependencyA:
+        pass
 
-    class DependencyB: pass
+    class DependencyB:
+        pass
 
     container.register_factory(
         key="DependencyA",
@@ -267,9 +283,11 @@ def test_validate_pass_with_override(container):
 
 
 def test_validate_fail_not_registered_not_in_overrides(container):
-    class DependencyA: pass
+    class DependencyA:
+        pass
 
-    class DependencyB: pass
+    class DependencyB:
+        pass
 
     container.register_factory(
         key="DependencyA",
@@ -286,14 +304,16 @@ def test_validate_fail_not_registered_not_in_overrides(container):
 
 
 def test_create_factory(container):
-    class MockComponent: pass
+    class MockComponent:
+        pass
 
     factory = container._create_factory(MockComponent, {}, {})
     assert isinstance(factory(), MockComponent)
 
 
 def test_register_component(container):
-    class MockComponent: pass
+    class MockComponent:
+        pass
 
     container.register_component(
         key="MockComponent",
@@ -305,7 +325,8 @@ def test_register_component(container):
 
 
 def test_register_component_invalid_metadata(container):
-    class MockComponent: pass
+    class MockComponent:
+        pass
 
     with pytest.raises(ValueError):
         container.register_component(

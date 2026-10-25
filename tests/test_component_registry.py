@@ -8,21 +8,22 @@ from app.exceptions.di import DuplicateKeyError
 from app.models.component import ComponentMetadata
 
 
-def _get_mock_component_data(key: str=None,
-                             is_dependency: bool=False,
-                             cls: type=None,
-                             lifecycle: int=None,):
+def _get_mock_component_data(key: str = None,
+                             is_dependency: bool = False,
+                             cls: type = None,
+                             lifecycle: int = None,):
     registry = ComponentRegistry()
     mock_factory = Mock()
     class MockComponent: pass
     mock_metadata = ComponentMetadata(
-        key = key or MockComponent.__name__,
-        type = cls or MockComponent,
-        is_dependency = is_dependency,
-        lifecycle = lifecycle or 0,
+        key=key or MockComponent.__name__,
+        type=cls or MockComponent,
+        is_dependency=is_dependency,
+        lifecycle=lifecycle or 0,
     )
 
     return registry, mock_factory, mock_metadata
+
 
 def test_add_component_is_dependency():
     registry, mock_factory, mock_metadata = _get_mock_component_data(
@@ -190,6 +191,7 @@ def test_get_registered_keys():
     assert mock_key_a in result
     assert mock_key_b in result
 
+
 def test_get_lifecycle_keys():
 
     mock_key_a = 'test_a'
@@ -197,7 +199,7 @@ def test_get_lifecycle_keys():
     mock_key_c = 'test_c'
     registry, mock_factory_a, mock_metadata_a = _get_mock_component_data(key=mock_key_a, lifecycle=2)
     _, mock_factory_b, mock_metadata_b = _get_mock_component_data(key=mock_key_b, lifecycle=1)
-    _, mock_factory_c, mock_metadata_c = _get_mock_component_data(key=mock_key_c,lifecycle=0)
+    _, mock_factory_c, mock_metadata_c = _get_mock_component_data(key=mock_key_c, lifecycle=0)
     registry.add_component(mock_key_a, mock_factory_a, mock_metadata_a)
     registry.add_component(mock_key_b, mock_factory_b, mock_metadata_b)
     registry.add_component(mock_key_c, mock_factory_c, mock_metadata_c)

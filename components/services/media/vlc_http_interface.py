@@ -12,16 +12,18 @@ from app.exceptions.system import ProcessStartupError
 from app.models.process import ProcessHandle
 
 
-class NoReaderHandleError(Exception): pass
+class NoReaderHandleError(Exception):
+    pass
 
 
-class NoProcessHandleError(Exception): pass
+class NoProcessHandleError(Exception):
+    pass
 
 
 class VlcHttpInterfaceSettings(BaseModel):
-    host: str='127.0.0.1'
-    port: str='8080'
-    password: str='your_password'
+    host: str = '127.0.0.1'
+    port: str = '8080'
+    password: str = 'your_password'
 
 
 @component()
@@ -46,10 +48,9 @@ class VlcHttpInterface:
                                       "Reader handle already exists. "
                                       "Hint: is the interface already started?")
         if self._process_handle:
-            raise  ProcessStartupError("Cannot start interface: "
-                                       "Process handle already exists. "
-                                       "Hint: is the interface already started?")
-
+            raise ProcessStartupError("Cannot start interface: "
+                                      "Process handle already exists. "
+                                      "Hint: is the interface already started?")
 
         cmd = 'vlc'
         args = [

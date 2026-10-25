@@ -30,9 +30,9 @@ def mock_async_reader_factory():
 
 @pytest.mark.asyncio
 async def test_vlc_http_interface_start(fake_settings,
-                                  mock_async_process_manager,
-                                  mock_async_reader_factory
-                                  ):
+                                        mock_async_process_manager,
+                                        mock_async_reader_factory
+                                        ):
     interface = VlcHttpInterface(settings=fake_settings,
                                  async_process_manager=mock_async_process_manager,
                                  async_reader_factory=mock_async_reader_factory
@@ -72,14 +72,14 @@ async def test_vlc_http_interface_stop(fake_settings, mock_async_process_manager
     interface._reader_handle = mock_reader_handle
 
     mock_process_handle = AsyncMock()
-    id = 42
-    mock_process_handle.id = id
+    pid = 42
+    mock_process_handle.id = pid
     interface._process_handle = mock_process_handle
 
     await interface.stop()
 
     mock_reader_handle.cancel.assert_awaited_once()
-    mock_async_process_manager.terminate.assert_awaited_once_with(pid=id)
+    mock_async_process_manager.terminate.assert_awaited_once_with(pid=pid)
 
 
 @pytest.mark.asyncio

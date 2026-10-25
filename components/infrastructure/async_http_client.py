@@ -3,7 +3,6 @@
 import httpx
 from typing import Optional, Type
 
-from app.di.keys import ASYNC_HTTP_CLIENT_KEY
 from app.di.registry import component
 from interfaces import LifecycleManagement
 

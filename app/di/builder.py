@@ -15,8 +15,9 @@ from app.exceptions.di import (
     IllegalDependencyError,
     GraphValidationError,
 )
-from app.models.config import Config
-from components.infrastructure.system_logger import SystemLogger
+
+
+# TODO: Refactor into graph builder, graph validator, and container builder
 
 
 class ContainerBuilder:
@@ -86,7 +87,7 @@ class ContainerBuilder:
             except Exception as e:
                 raise RuntimeError(f"Critical wiring failure for component '{component_name}': {e}") from e
 
-    def _get_metadata_by_key(self, key: str)-> ComponentMetadata | None:
+    def _get_metadata_by_key(self, key: str) -> ComponentMetadata | None:
         for metadata in self._registry.values():
             if metadata.key == key:
                 return metadata
@@ -127,7 +128,9 @@ class ContainerBuilder:
 
         if not node["is_dependency"] and len(path) > 0:
             parent = path[-1]
-            raise IllegalDependencyError(f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency")
+            raise IllegalDependencyError(
+                f"Component '{cur}' cannot depend on '{parent}' because it is not a dependency"
+            )
 
         path.append(cur)
         for req_key in node["requires"].values():

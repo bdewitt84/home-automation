@@ -3,6 +3,9 @@
 from abc import ABC, abstractmethod
 
 
+# TODO: segregate into "Startable" and "Stoppable"
+
+
 class LifecycleManagement(ABC):
 
     @abstractmethod

@@ -27,8 +27,10 @@ from config.settings import app_settings
 async def lifespan(app: FastAPI):
 
     # --- Bootstrap phase ---
+
     try:
         # --- Init Core ---
+
         event_bus = ASyncEventBus()
         log_sink = ConsoleLogSink(event_bus=event_bus)
         logger = SystemLogger(bus=event_bus)
@@ -39,6 +41,11 @@ async def lifespan(app: FastAPI):
         scanner = Scanner(logger=logger)
         manager = init_lifecycle_manager(app=app)
 
+    except Exception as e:
+        print(f"Fatal framework error: Failed to initialize core. \n{e}\n{traceback.format_exc()}")
+        raise
+
+    try:
         # --- Scan Components ---
         scanner.scan_packages([
             app_settings.SERVICE_PACKAGE_NAME,
@@ -75,12 +82,11 @@ async def lifespan(app: FastAPI):
         yield # control back to fastAPI
 
     except Exception as e:
-        logger.error(f"Fatal framework error: {e}\n{traceback.format_exc()}")
+        logger.error(f"Fatal framework error: \n{e}\n{traceback.format_exc()}")
         raise
 
     # -- Shutdown phase ---
     finally:
-        # TODO: Resolve possible reference before assignment
         await event_bus.stop()
         await log_sink.stop()
         await shutdown_state(app=app)

@@ -8,6 +8,7 @@ from components.infrastructure.async_stream_reader_factory import (
     AsyncStreamReaderFactory,
     AsyncTaskHandle,
 )
+from components.infrastructure.system_logger import SystemLogger
 from app.exceptions.system import ProcessStartupError
 from app.models.process import ProcessHandle
 
@@ -31,10 +32,12 @@ class VlcHttpInterface:
     def __init__(self,
                  settings: VlcHttpInterfaceSettings,
                  async_process_manager: AsyncProcessManager,
-                 async_reader_factory: AsyncStreamReaderFactory, ):
+                 async_reader_factory: AsyncStreamReaderFactory,
+                 logger: SystemLogger):
         self._settings = settings
         self._async_process_manager = async_process_manager
         self._async_stream_consumer = async_reader_factory
+        self._logger = logger
 
         self._process_handle: ProcessHandle | None = None
         self._reader_handle: AsyncTaskHandle | None = None
@@ -74,8 +77,7 @@ class VlcHttpInterface:
             try:
                 await self._reader_handle.cancel()
             except Exception as e:
-                # todo: implement logging
-                print(f"Failed to cancel reader task: {e}")
+                self._logger.warning(f"Failed to cancel reader task: {e}")
             finally:
                 self._reader_handle = None
 
@@ -83,7 +85,6 @@ class VlcHttpInterface:
             try:
                 await self._async_process_manager.terminate(pid=self._process_handle.id)
             except Exception as e:
-                # todo: implement logging
-                print(f"Failed to cancel process task: {e}")
+                self._logger.warning(f"Failed to cancel process task: {e}")
             finally:
                 self._process_handle = None

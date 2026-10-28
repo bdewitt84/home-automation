@@ -110,14 +110,37 @@ async def test_vlc_http_interface_start_process_handle_exists(create_vlc_http_in
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_stop_no_reader_handle(
-        fake_settings, mock_async_process_manager, mock_async_reader_factory):
-    # todo: test logging once implemented
-    raise NotImplemented
+async def test_vlc_http_interface_stop_no_reader_handle(create_vlc_http_interface):
+    logger = Mock()
+    interface = create_vlc_http_interface(logger=logger)
+
+    mock_reader_handle = AsyncMock()
+    mock_reader_handle.cancel.side_effect = Exception("Oopsie!")
+    interface._reader_handle = mock_reader_handle
+
+    await interface.stop()
+
+    logger.warning.assert_called_once()
+    args, kwargs = logger.warning.call_args
+    log_msg = args[0]
+    assert "Failed to cancel reader task: " in log_msg
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_stop_no_process_handle(
-        fake_settings, mock_async_process_manager, mock_async_reader_factory):
-    # todo: test logging once implemented
-    raise NotImplemented
+async def test_vlc_http_interface_stop_no_process_handle(create_vlc_http_interface):
+    logger = Mock()
+    mock_async_process_manager = AsyncMock()
+    interface = create_vlc_http_interface(
+        async_process_manager=mock_async_process_manager,
+        logger=logger
+    )
+
+    interface._process_handle = Mock()
+    mock_async_process_manager.terminate.side_effect = Exception("Oopsie!")
+
+    await interface.stop()
+
+    logger.warning.assert_called_once()
+    args, kwargs = logger.warning.call_args
+    log_msg = args[0]
+    assert "Failed to cancel process task: " in log_msg

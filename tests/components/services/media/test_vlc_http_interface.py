@@ -4,6 +4,9 @@ import pytest
 from unittest.mock import AsyncMock, Mock
 
 from app.exceptions.system import ProcessStartupError
+from components.infrastructure.async_process_manager import AsyncProcessManager
+from components.infrastructure.async_stream_reader_factory import AsyncStreamReaderFactory
+from components.infrastructure.system_logger import SystemLogger
 from components.services.media.vlc_http_interface import (
     VlcHttpInterface,
     VlcHttpInterfaceSettings,
@@ -11,32 +14,34 @@ from components.services.media.vlc_http_interface import (
 
 
 @pytest.fixture
-def fake_settings():
-    settings = VlcHttpInterfaceSettings()
-    return settings
+def create_vlc_http_interface():
 
+    def interface_factory(settings: VlcHttpInterfaceSettings = None,
+                          async_process_manager: AsyncProcessManager = None,
+                          async_reader_factory: AsyncStreamReaderFactory = None,
+                          logger: SystemLogger = None
+                          ):
+        interface = VlcHttpInterface(
+            settings=settings or VlcHttpInterfaceSettings(),
+            async_process_manager=async_process_manager or AsyncMock(),
+            async_reader_factory=async_reader_factory or AsyncMock(),
+            logger=logger or Mock()
+        )
+        return interface
 
-@pytest.fixture
-def mock_async_process_manager():
-    manager = AsyncMock()
-    return manager
-
-
-@pytest.fixture
-def mock_async_reader_factory():
-    reader = AsyncMock()
-    return reader
+    return interface_factory
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_start(fake_settings,
-                                        mock_async_process_manager,
-                                        mock_async_reader_factory
-                                        ):
-    interface = VlcHttpInterface(settings=fake_settings,
-                                 async_process_manager=mock_async_process_manager,
-                                 async_reader_factory=mock_async_reader_factory
-                                 )
+async def test_vlc_http_interface_start(create_vlc_http_interface):
+    mock_async_process_manager = AsyncMock()
+    mock_async_reader_factory = AsyncMock()
+    fake_settings = VlcHttpInterfaceSettings()
+    interface = create_vlc_http_interface(
+        settings=fake_settings,
+        async_process_manager=mock_async_process_manager,
+        async_reader_factory=mock_async_reader_factory,
+    )
     cmd = 'vlc'
     args = [
         r'-I', r'http',
@@ -62,11 +67,11 @@ async def test_vlc_http_interface_start(fake_settings,
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_stop(fake_settings, mock_async_process_manager, mock_async_reader_factory):
-    interface = VlcHttpInterface(settings=fake_settings,
-                                 async_process_manager=mock_async_process_manager,
-                                 async_reader_factory=mock_async_reader_factory
-                                 )
+async def test_vlc_http_interface_stop(create_vlc_http_interface):
+    mock_async_process_manager = AsyncMock()
+    interface = create_vlc_http_interface(
+        async_process_manager=mock_async_process_manager
+    )
 
     mock_reader_handle = AsyncMock()
     interface._reader_handle = mock_reader_handle
@@ -83,11 +88,8 @@ async def test_vlc_http_interface_stop(fake_settings, mock_async_process_manager
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_start_reader_handle_exists(
-        fake_settings, mock_async_process_manager, mock_async_reader_factory):
-    interface = VlcHttpInterface(settings=fake_settings,
-                                 async_process_manager=mock_async_process_manager,
-                                 async_reader_factory=mock_async_reader_factory)
+async def test_vlc_http_interface_start_reader_handle_exists(create_vlc_http_interface):
+    interface = create_vlc_http_interface()
 
     mock_reader_handle = Mock()
     interface._reader_handle = mock_reader_handle
@@ -97,11 +99,8 @@ async def test_vlc_http_interface_start_reader_handle_exists(
 
 
 @pytest.mark.asyncio
-async def test_vlc_http_interface_start_process_handle_exists(
-        fake_settings, mock_async_process_manager, mock_async_reader_factory):
-    interface = VlcHttpInterface(settings=fake_settings,
-                                 async_process_manager=mock_async_process_manager,
-                                 async_reader_factory=mock_async_reader_factory)
+async def test_vlc_http_interface_start_process_handle_exists(create_vlc_http_interface):
+    interface = create_vlc_http_interface()
 
     mock_process_handle = Mock()
     interface._process_handle = mock_process_handle

@@ -13,9 +13,11 @@ from app.bootstrap.lifecycle import (
     startup_state,
     shutdown_state,
 )
+from app.di.graph_builder import GraphBuilder
+from app.di.graph_validator import GraphValidator
 from app.di.registry import METADATA_REGISTRY
-from app.di.builder import ContainerBuilder
 from app.di.container import DependencyContainer
+from app.di.registry_builder import RegistryBuilder
 from app.routing.builder import RouteBuilder
 from components.infrastructure.console_log_sink import ConsoleLogSink
 from components.infrastructure.event_bus import ASyncEventBus
@@ -34,12 +36,14 @@ async def lifespan(app: FastAPI):
         event_bus = ASyncEventBus()
         log_sink = ConsoleLogSink(event_bus=event_bus)
         logger = SystemLogger(bus=event_bus)
+        # TODO: container?
 
         await event_bus.start()
         await log_sink.start()
 
         scanner = Scanner(logger=logger)
         manager = init_lifecycle_manager(app=app)
+        # TODO: assign core here?
 
     except Exception as e:
         print(f"Fatal framework error: Failed to initialize core. \n{e}\n{traceback.format_exc()}")
@@ -61,14 +65,21 @@ async def lifespan(app: FastAPI):
         # --- Wire Components ---
         container = DependencyContainer()
         core = [container, event_bus, log_sink, logger]
-        container_builder = ContainerBuilder(container=container,
-                                             registry=METADATA_REGISTRY,
-                                             config=config,
-                                             logger=logger,
-                                             core=core)
+        registry_builder = RegistryBuilder(logger=logger,
+                                           metadata=METADATA_REGISTRY,
+                                           config=config,
+                                           core=core)
+        registry = registry_builder.build()
+        graph_builder = GraphBuilder(logger=logger,
+                                     registry=registry)
+        dependency_graph = graph_builder.build_dependency_graph()
+        graph_validator = GraphValidator(logger=logger,
+                                         graph=dependency_graph)
+        graph_validator.validate_graph()
+        container._registry = registry
 
-        container_builder.build()
-
+        # --- OLD WIRE COMPONENTS ---
+        # TODO: Rework the lifecycle manager to take the registry?
         wire_lifecycle_management(container=container,
                                   manager=manager)
 
@@ -79,7 +90,7 @@ async def lifespan(app: FastAPI):
 
         await startup_state(app=app)
 
-        yield # control back to fastAPI
+        yield  # control back to fastAPI
 
     except Exception as e:
         logger.error(f"Fatal framework error: \n{e}\n{traceback.format_exc()}")

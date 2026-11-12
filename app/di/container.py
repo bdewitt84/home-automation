@@ -1,38 +1,22 @@
 # app/di/container.py
 
-from typing import Callable, Any, Type, Optional
+from typing import Any, Type, Optional
 
 from app.di.component_registry import ComponentRegistry
 from app.exceptions.di import (
-    DependencyNotFoundError,
     FactoryNotFoundError,
     TypeNotFoundError,
 )
 from app.models.component import (
-    ComponentMetadata,
-    ComponentRegistration,
     DependencyRequirement,
 )
 
 
 class DependencyContainer:
     def __init__(self,
-                 registry: Optional[ComponentRegistry]=None,):
+                 registry: Optional[ComponentRegistry] = None,):
 
         self._registry = registry or ComponentRegistry()
-
-
-    def register_factory(self,
-                         key: str,
-                         factory: Callable[[], Any],
-                         overrides: dict[str, Any],
-                         metadata: ComponentMetadata = None,
-                         ) -> None:
-
-        self._registry.add_component(key=key,
-                                     factory=factory,
-                                     overrides=overrides,
-                                     metadata=metadata)
 
     def resolve(self, key: str) -> Any:
         instance = self._registry.get_singleton(key)
@@ -43,12 +27,12 @@ class DependencyContainer:
             if factory is None:
                 raise FactoryNotFoundError(f"Cannot resolve key '{key}': Factory is not registered")
 
-            instance = factory()
+            instance = factory(self)
             self._registry.store_singleton(key, instance)
 
         return instance
 
-    def resolve_by_type(self, target:Type[Any]) -> Any:
+    def resolve_by_type(self, target: Type[Any]) -> Any:
         key = self._registry.get_key_by_type(target)
 
         if key is None:
@@ -56,107 +40,21 @@ class DependencyContainer:
 
         return self.resolve(key)
 
-    def get_metadata(self, key:str) -> Any:
+    def get_metadata(self, key: str) -> Any:
         return self._registry.get_metadata(key)
 
     def get_all_registered_metadata(self):
         return self._registry.get_all_metadata()
 
-    def get_registered_component_keys(self) -> list[str]:
-        return self._registry.get_registered_keys()
-
     def get_lifecycle_keys(self):
         return self._registry.get_lifecycle_keys()
 
     def _get_resolved_dependencies(self, requirements: dict[str, DependencyRequirement]) -> dict[str, Any]:
-
-        resolved = {
+        return {
             name: self.resolve_by_type(requirement.type)
-            for name, requirement in requirements.items()
+            for name, requirement
+            in requirements.items()
         }
 
-        return resolved
-
-    def _validate(self,
-                      requirements: dict[str, Type],
-                      overrides: Optional[dict[str, Any]]):
-
-        for cls_name, arg_type in requirements.items():
-
-            if cls_name in overrides:
-                continue
-
-            if not self._registry.is_dependency(arg_type):
-                raise DependencyNotFoundError(
-                    f"Validation error: '{cls_name}': ({arg_type.__name__}) "
-                    f"is not a registered dependency and no override was provided."
-                )
-
-    def _create_factory(self,
-                        cls,
-                        requirements: dict[str, DependencyRequirement],
-                        overrides: Optional[dict[str, Any]] = None) -> Callable[[], Any]:
-
-        overrides = overrides or {}
-
-        def factory():
-            needed_from_container = {}
-            for name, requirement in requirements.items():
-                if overrides and name in overrides:
-                    continue
-                if self.get_key_by_type(requirement.type) is None and requirement.has_default:
-                    continue
-                needed_from_container[name] = requirement
-
-            resolved_dependencies = self._get_resolved_dependencies(needed_from_container)
-            return cls(**resolved_dependencies, **overrides)
-
-        return factory
-
-    def register_component(self,
-                           key: str,
-                           cls: Type[Any],
-                           metadata: ComponentMetadata,
-                           overrides: Optional[dict[str, Any]] = None
-                           ) -> None:
-        if not isinstance(metadata, ComponentMetadata):
-            raise ValueError(f"Cannot register component '{key}': "
-                             f"Component metadata must be an instance of 'ComponentMetadata'.")
-
-        overrides = overrides or {}
-        requirements = metadata.requirements
-        factory = self._create_factory(cls, requirements, overrides)
-        self.register_factory(key, factory, overrides, metadata)
-
-    def register_self(self):
-
-        name = self.__class__.__name__
-        type_ = self.__class__
-        factory = lambda: self
-
-        metadata = ComponentMetadata(name, type_, is_dependency=True)
-        self.register_factory(key=name,
-                              factory=factory,
-                              overrides={},
-                              metadata=metadata,)
-
-    def register_instance(self, key: str, instance: Any) -> None:
-        self.register_factory(
-            key=key,
-            factory=lambda: instance,
-            overrides={},
-            metadata=ComponentMetadata(
-                key=key,
-                type=instance.__class__,
-                is_dependency=True
-            )
-        )
-
-    def get_record(self, key: str) -> ComponentRegistration:
-        return self._registry.get_record(key)
-
-    def get_all_records(self) -> dict[str, ComponentRegistration]:
-        return self._registry.get_all_records()
-
-    def get_key_by_type(self, cls: Type) -> Optional[str]:
+    def _get_key_by_type(self, cls: Type) -> Optional[str]:
         return self._registry.get_key_by_type(cls)

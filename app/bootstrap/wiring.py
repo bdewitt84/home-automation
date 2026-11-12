@@ -9,6 +9,9 @@ from config.supported_platforms import SUPPORTED_PLATFORMS
 from interfaces import SystemService
 
 
+# TODO: Refactor all of the functions out of this file and get rid of it.
+
+
 def wire_system_service(container: DependencyContainer,
                         platform: str
                         ) -> None:

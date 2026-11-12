@@ -10,8 +10,8 @@ class Introspector:
     def __init__(self):
         pass
 
-    def get_requirements(self,
-                         target: Type[Any] | Callable,
+    @staticmethod
+    def get_requirements(target: Type[Any] | Callable,
                          ) -> dict[str, DependencyRequirement]:
 
         sig = signature(target)

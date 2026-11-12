@@ -13,10 +13,10 @@ MetadataRegistry: TypeAlias = Dict[Type[Any] | Callable, ComponentMetadata]
 METADATA_REGISTRY: MetadataRegistry = {}
 
 
-def component(key:str=None,
+def component(key: str = None,
               settings_cls=None,
               is_dependency=False,
-              lifecycle: int=0
+              lifecycle: int = 0
               ) -> Any:
 
     def decorator(cls: Type[Any] | Callable):
@@ -26,7 +26,9 @@ def component(key:str=None,
         if isfunction(cls):
             sig = signature(cls)
             if sig.return_annotation is Signature.empty:
-                raise TypeError(f"Function {cls.__name__} must have return annotation to be registered as a component provider")
+                raise TypeError(
+                    f"Function {cls.__name__} must have return annotation to be registered as a component provider"
+                )
             effective_type = sig.return_annotation
         else:
             effective_type = cls
@@ -48,7 +50,7 @@ def component(key:str=None,
     return decorator
 
 
-def infrastructure(key:str=None, settings_cls=None,  lifecycle: int=0) -> Any:
+def infrastructure(key: str = None, settings_cls=None,  lifecycle: int = 0) -> Any:
     return component(
         key=key,
         settings_cls=settings_cls,
@@ -57,7 +59,7 @@ def infrastructure(key:str=None, settings_cls=None,  lifecycle: int=0) -> Any:
     )
 
 
-def user_component(key:str=None, settings_cls=None, lifecycle: int=0) -> Any:
+def user_component(key: str = None, settings_cls=None, lifecycle: int = 0) -> Any:
     return component(
         key=key,
         settings_cls=settings_cls,
